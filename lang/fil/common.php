@@ -50,6 +50,8 @@ return [
     'concerns' => 'Mga Alalahanin',
     'submit_concern' => 'Magsumite ng Alalahanin',
     'track_status' => 'Subaybayan ang Katayuan',
+    'register_resident' => 'Magrehistro ng Residente',
+    'file_request' => 'Maghain ng Kahilingan',
     'pending' => 'Nakabinbin',
     'reviewing' => 'Sinusuri',
     'approved' => 'Naaprubahan',

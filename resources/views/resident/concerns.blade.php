@@ -50,7 +50,7 @@
         @else
             <div class="space-y-4">
                 @foreach($concerns as $concern)
-                    <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <a href="{{ route('resident.concerns.show', $concern->id) }}" wire:navigate class="block p-4 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-medium text-gray-900 dark:text-gray-100">{{ $concern->subject }}</h3>
@@ -65,7 +65,7 @@
                             </div>
                             <x-badge :status="$concern->status" class="shrink-0" />
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         @endif

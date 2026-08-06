@@ -12,8 +12,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('auth.reset_password') }}</h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-1 text-sm">Choose a new password for your account.</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('auth.reset_pin_title', [], 'en') }}</h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-1 text-sm">{{ __('auth.reset_pin_desc', [], 'en') }}</p>
             </div>
 
             @if($errors->any())
@@ -29,24 +29,21 @@
             <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
                 @csrf
                 <input type="hidden" name="token" value="{{ $token }}">
+                <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
 
-                <x-input name="email" label="{{ __('auth.email') }}" type="email" required
-                    value="{{ $email ?? old('email') }}"
-                    placeholder="Enter your email address"
-                    autocomplete="email"
-                    :error="$errors->first('email')" />
-
-                <x-input name="password" label="{{ __('auth.new_password') }}" type="password" required
-                    placeholder="Minimum 8 characters"
+                <x-input name="pin" label="{{ __('auth.pin') }}" type="password" required
+                    placeholder="Enter a new 6-digit PIN"
+                    maxlength="6" inputmode="numeric"
                     autocomplete="new-password"
-                    :error="$errors->first('password')" />
+                    :error="$errors->first('pin')" />
 
-                <x-input name="password_confirmation" label="{{ __('auth.confirm_password') }}" type="password" required
-                    placeholder="Re-enter new password"
+                <x-input name="pin_confirmation" label="{{ __('auth.confirm_pin') }}" type="password" required
+                    placeholder="Re-enter new PIN"
+                    maxlength="6" inputmode="numeric"
                     autocomplete="new-password"
-                    :error="$errors->first('password_confirmation')" />
+                    :error="$errors->first('pin_confirmation')" />
 
-                <button type="submit" class="btn-primary w-full">{{ __('auth.reset_password') }}</button>
+                <button type="submit" class="btn-primary w-full">{{ __('auth.reset_pin_title', [], 'en') }}</button>
             </form>
 
             <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
@@ -58,26 +55,30 @@
 
 <script>
     (function () {
-        var pwd = document.querySelector('input[name="password"]');
-        var pwdConfirm = document.querySelector('input[name="password_confirmation"]');
+        var pinInput = document.querySelector('input[name="pin"]');
+        var pinConfirm = document.querySelector('input[name="pin_confirmation"]');
 
-        if (pwd) {
-            pwd.addEventListener('input', function() {
-                if (pwdConfirm && pwdConfirm.value) {
+        if (pinInput) {
+            pinInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 6);
+                if (pinConfirm && pinConfirm.value) {
                     validateMatch();
                 }
             });
         }
 
-        if (pwdConfirm) {
-            pwdConfirm.addEventListener('input', validateMatch);
+        if (pinConfirm) {
+            pinConfirm.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 6);
+                validateMatch();
+            });
         }
 
         function validateMatch() {
-            if (pwd.value !== pwdConfirm.value) {
-                pwdConfirm.classList.add('input-error');
-            } else {
-                pwdConfirm.classList.remove('input-error');
+            if (pinConfirm && pinConfirm.value !== pinInput.value) {
+                pinConfirm.classList.add('input-error');
+            } else if (pinConfirm) {
+                pinConfirm.classList.remove('input-error');
             }
         }
     })();

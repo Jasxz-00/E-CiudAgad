@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\CredentialService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
@@ -64,12 +65,23 @@ class UserController extends Controller
             'role' => 'required|in:admin,personnel,resident',
         ]);
 
-        User::create([
+        $data = [
             'email' => $validated['email'],
             'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-        ]);
+            'is_active' => true,
+        ];
+
+        $pin = null;
+        if ($validated['role'] === 'resident') {
+            $credentialService = app(CredentialService::class);
+            $data['tracking_number'] = $credentialService->generateTrackingNumber();
+            $data['pin'] = Hash::make($pin = $credentialService->generatePin());
+            $data['password'] = $data['pin'];
+        }
+
+        User::create($data)->assignRole($validated['role']);
 
         $return = request('return', 'users');
         $route = match ($return) {
@@ -78,7 +90,12 @@ class UserController extends Controller
             default => 'admin.users.index',
         };
 
-        return redirect()->route($route)->with('success', 'User created successfully.');
+        $message = 'User created successfully.';
+        if ($pin !== null) {
+            $message .= " Tracking Number: {$data['tracking_number']} - PIN: {$pin}";
+        }
+
+        return redirect()->route($route)->with('success', $message);
     }
 
     public function show(User $user)
@@ -110,11 +127,22 @@ class UserController extends Controller
             'is_active' => $validated['is_active'] ?? false,
         ];
 
+        if ($validated['role'] === 'resident') {
+            $credentialService = app(CredentialService::class);
+            if (empty($user->tracking_number)) {
+                $data['tracking_number'] = $credentialService->generateTrackingNumber();
+            }
+            if (empty($user->pin)) {
+                $data['pin'] = Hash::make($credentialService->generatePin());
+            }
+        }
+
         if (! empty($validated['password'])) {
             $data['password'] = Hash::make($validated['password']);
         }
 
         $user->update($data);
+        $user->syncRoles($validated['role']);
 
         $return = request('return', 'users');
         $route = match ($return) {

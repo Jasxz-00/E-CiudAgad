@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Personnel;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\DocumentRequest;
+use App\Notifications\RequestStatusNotification;
 use App\Services\FileService;
 use App\Services\WFQService;
 use Illuminate\Http\Request;
@@ -96,6 +97,11 @@ class RequestController extends Controller
     public function review($id)
     {
         $documentRequest = DocumentRequest::findOrFail($id);
+
+        if ($documentRequest->status !== 'pending') {
+            return back()->with('error', 'Only pending requests can be reviewed.');
+        }
+
         $documentRequest->update([
             'status' => 'reviewing',
             'processed_by' => Auth::id(),
@@ -116,6 +122,10 @@ class RequestController extends Controller
     public function approve($id)
     {
         $documentRequest = DocumentRequest::findOrFail($id);
+
+        if ($documentRequest->status !== 'reviewing') {
+            return back()->with('error', 'Only requests under review can be approved.');
+        }
 
         DB::transaction(function () use ($documentRequest) {
             $documentRequest->update([
@@ -142,6 +152,8 @@ class RequestController extends Controller
             $this->wFQService->recalculateQueue();
         });
 
+        $this->notifyResident($documentRequest, 'Request Approved', "Your request {$documentRequest->queue_number} has been approved and is being processed.");
+
         return back()->with('success', 'Request approved successfully.');
     }
 
@@ -152,6 +164,11 @@ class RequestController extends Controller
         ]);
 
         $documentRequest = DocumentRequest::findOrFail($id);
+
+        if (! in_array($documentRequest->status, ['pending', 'reviewing'])) {
+            return back()->with('error', 'Only pending or reviewing requests can be rejected.');
+        }
+
         $documentRequest->update([
             'status' => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
@@ -168,12 +185,19 @@ class RequestController extends Controller
 
         $this->wFQService->recalculateQueue();
 
+        $this->notifyResident($documentRequest, 'Request Rejected', "Your request {$documentRequest->queue_number} was rejected. Reason: {$validated['rejection_reason']}");
+
         return back()->with('success', 'Request rejected.');
     }
 
     public function complete($id)
     {
         $documentRequest = DocumentRequest::findOrFail($id);
+
+        if ($documentRequest->status !== 'approved') {
+            return back()->with('error', 'Only approved requests can be marked as completed.');
+        }
+
         $documentRequest->update([
             'status' => 'completed',
             'completed_at' => now(),
@@ -189,6 +213,44 @@ class RequestController extends Controller
 
         $this->wFQService->recalculateQueue();
 
+        $this->notifyResident($documentRequest, 'Request Completed', "Your request {$documentRequest->queue_number} is ready for release. Please claim it at the barangay hall.");
+
         return back()->with('success', 'Request marked as completed.');
+    }
+
+    public function release($id)
+    {
+        $documentRequest = DocumentRequest::findOrFail($id);
+
+        if ($documentRequest->status !== 'completed') {
+            return back()->with('error', 'Only completed requests can be marked as released.');
+        }
+
+        $documentRequest->update([
+            'status' => 'released',
+        ]);
+
+        AuditLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'released',
+            'auditable_type' => DocumentRequest::class,
+            'auditable_id' => $documentRequest->id,
+            'description' => 'Released document request '.$documentRequest->queue_number,
+        ]);
+
+        $this->wFQService->recalculateQueue();
+
+        $this->notifyResident($documentRequest, 'Request Released', "Your request {$documentRequest->queue_number} has been released. You may now claim your document.");
+
+        return back()->with('success', 'Request marked as released.');
+    }
+
+    protected function notifyResident(DocumentRequest $documentRequest, string $title, string $message): void
+    {
+        $user = $documentRequest->resident?->user;
+
+        if ($user) {
+            $user->notify(new RequestStatusNotification($documentRequest, $title, $message));
+        }
     }
 }

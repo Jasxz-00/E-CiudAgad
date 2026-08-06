@@ -52,6 +52,10 @@
                     </button>
 
                     @auth
+                        @include('partials.notification-bell')
+                    @endauth
+
+                    @auth
                         <div class="hidden md:flex items-center gap-3">
                             @if(auth()->user()->isAdmin())
                                 <a href="{{ route('admin.dashboard') }}" wire:navigate class="btn-ghost text-sm">Admin</a>
@@ -138,12 +142,18 @@
                             </form>
                         @elseif(auth()->user()->isPersonnel())
                             <a href="{{ route('personnel.dashboard') }}" wire:navigate class="btn-ghost justify-start">Dashboard</a>
+                            <a href="{{ route('personnel.requests') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.requests') }}</a>
+                            <a href="{{ route('personnel.registrations.create') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.register_resident') }}</a>
+                            <a href="{{ route('personnel.resident-requests.create') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.file_request') }}</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="btn-ghost justify-start w-full text-left">Log Out</button>
                             </form>
                         @else
                             <a href="{{ route('resident.dashboard') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.dashboard') }}</a>
+                            <a href="{{ route('resident.requests') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.requests') }}</a>
+                            <a href="{{ route('resident.new-request') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.new_request') }}</a>
+                            <a href="{{ route('resident.concerns') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.concerns') }}</a>
                             <a href="{{ route('resident.profile') }}" wire:navigate class="btn-ghost justify-start">{{ __('common.profile') }}</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

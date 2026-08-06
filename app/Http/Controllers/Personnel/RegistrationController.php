@@ -13,6 +13,7 @@ use App\Services\AgeService;
 use App\Services\CredentialService;
 use App\Services\FileService;
 use App\Services\WFQService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -95,10 +96,10 @@ class RegistrationController extends Controller
 
         DB::beginTransaction();
         try {
-            $email = $validated['email'] ?? ('resident_'.$this->credentialService->generateTrackingNumber().'@example.com');
-
             $trackingNumber = $this->credentialService->generateTrackingNumber();
             $pin = $this->credentialService->generatePin();
+
+            $email = $validated['email'] ?? ('resident_'.$trackingNumber.'@example.com');
 
             $user = User::create([
                 'email' => $email,
@@ -159,15 +160,11 @@ class RegistrationController extends Controller
                 'back_file_size' => $request->hasFile('id_scan_back') ? $request->file('id_scan_back')->getSize() : null,
             ]);
 
-            $documentRequest = $resident->documentRequests()->create([
-                'queue_number' => $this->wFQService->generateQueueNumber(),
-                'document_type_id' => $validated['document_type_id'],
-                'purpose_id' => $validated['purpose_id'],
-                'purpose_other' => $validated['purpose_other'] ?? null,
-                'status' => 'pending',
-            ]);
+            $documentRequest = $this->createDocumentRequest($resident, $validated);
 
             $this->wFQService->enqueue($documentRequest);
+
+            \App\Services\NotificationService::notifyPersonnelOfNewRequest($documentRequest);
 
             PersonnelRegistration::create([
                 'personnel_id' => Auth::id(),
@@ -205,5 +202,24 @@ class RegistrationController extends Controller
         $resident = Resident::with(['user', 'documentRequests'])->findOrFail($id);
 
         return view('personnel.registration-show', compact('resident'));
+    }
+
+    protected function createDocumentRequest($resident, array $validated)
+    {
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            try {
+                return $resident->documentRequests()->create([
+                    'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'document_type_id' => $validated['document_type_id'],
+                    'purpose_id' => $validated['purpose_id'],
+                    'purpose_other' => $validated['purpose_other'] ?? null,
+                    'status' => 'pending',
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt === 3 || ! $this->wFQService->isQueueNumberCollision($e)) {
+                    throw $e;
+                }
+            }
+        }
     }
 }

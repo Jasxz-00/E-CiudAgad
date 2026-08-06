@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', __('auth.forgot_password_title'))
+@section('title', __('auth.forgot_pin_title', [], 'en'))
 
 @section('content')
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
@@ -12,8 +12,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('auth.forgot_password_title') }}</h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-1 text-sm">{{ __('auth.forgot_password_desc') }}</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('auth.forgot_pin_title', [], 'en') }}</h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-1 text-sm">{{ __('auth.forgot_pin_desc', [], 'en') }}</p>
             </div>
 
             @if(session('status'))

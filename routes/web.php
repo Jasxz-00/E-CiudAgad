@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Personnel\DashboardController as PersonnelDashboardController;
 use App\Http\Controllers\Personnel\RegistrationController as PersonnelRegistrationController;
 use App\Http\Controllers\Personnel\RequestController as PersonnelRequestController;
@@ -51,6 +52,10 @@ Route::get('/storage/private/{path}', function (string $path) {
 })->where('path', '.*')->middleware('auth')->name('storage.private');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::match(['get', 'post'], '/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
     Route::middleware(['role:resident'])->prefix('resident')->name('resident.')->group(function () {
         Route::get('/dashboard', [ResidentDashboardController::class, 'index'])->name('dashboard');
         Route::get('/requests', [ResidentDashboardController::class, 'requests'])->name('requests');
@@ -73,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/requests/{id}/approve', [PersonnelRequestController::class, 'approve'])->name('request.approve');
         Route::post('/requests/{id}/reject', [PersonnelRequestController::class, 'reject'])->name('request.reject');
         Route::post('/requests/{id}/complete', [PersonnelRequestController::class, 'complete'])->name('request.complete');
+        Route::post('/requests/{id}/release', [PersonnelRequestController::class, 'release'])->name('request.release');
 
         Route::get('/registrations/create', [PersonnelRegistrationController::class, 'create'])->name('registrations.create');
         Route::post('/registrations', [PersonnelRegistrationController::class, 'store'])->name('registrations.store');

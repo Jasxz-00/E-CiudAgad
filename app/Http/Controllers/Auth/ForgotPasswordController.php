@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ForgotPasswordController extends Controller
@@ -127,31 +126,35 @@ class ForgotPasswordController extends Controller
         $validated = $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'pin' => ['required', 'string', 'digits:6', 'confirmed'],
         ]);
 
-        $status = Password::reset(
-            $validated,
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->save();
+        $user = User::where('email', $validated['email'])->first();
 
-                $user->setRememberToken(Str::random(60));
-
-                DB::table('password_reset_tokens')
-                    ->where('email', $user->email)
-                    ->delete();
-            }
-        );
-
-        if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('status', __($status));
+        if (! $user || $user->role !== 'resident' || ! $user->pin) {
+            throw ValidationException::withMessages([
+                'email' => __('Password/PIN reset is only available for resident accounts.'),
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => __($status),
-        ]);
+        $broker = app('auth.password.broker');
+
+        if (! $broker->tokenExists($user, $validated['token'])) {
+            throw ValidationException::withMessages([
+                'email' => __('This password reset token is invalid or has expired.'),
+            ]);
+        }
+
+        $user->forceFill([
+            'pin' => Hash::make($validated['pin']),
+        ])->save();
+
+        DB::table('password_reset_tokens')
+            ->where('email', $user->email)
+            ->delete();
+
+        return redirect()->route('login')
+            ->with('status', __('Your PIN has been reset successfully. Please log in using your Tracking Number and new PIN.'));
     }
 
     public function verifyPhoneOtp(Request $request)

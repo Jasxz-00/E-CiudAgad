@@ -11,6 +11,7 @@ use App\Models\Announcement;
 use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\RequestPurpose;
+use App\Services\NotificationService;
 use App\Services\WFQService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -51,9 +52,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $notifications = DocumentRequest::where('resident_id', $resident->id)
-            ->with(['documentType', 'purpose'])
-            ->orderBy('updated_at', 'desc')
+        $notifications = Auth::user()
+            ->notifications()
             ->take(10)
             ->get();
 
@@ -177,7 +177,11 @@ class DashboardController extends Controller
         }
 
         if (! empty($changedFields) && $user->email) {
-            Mail::to($user->email)->queue(new ProfileUpdateConfirmation($user, $changedFields));
+            try {
+                Mail::to($user->email)->send(new ProfileUpdateConfirmation($user, $changedFields));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send profile update confirmation', ['message' => $e->getMessage()]);
+            }
         }
 
         return back()->with('success', __('profile.updated_success'));
@@ -203,7 +207,11 @@ class DashboardController extends Controller
         ]);
 
         if ($user->email) {
-            Mail::to($user->email)->queue(new PinResetConfirmation($user));
+            try {
+                Mail::to($user->email)->send(new PinResetConfirmation($user));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send PIN reset confirmation', ['message' => $e->getMessage()]);
+            }
         }
 
         return back()->with('success', __('profile.pin_reset_success'));
@@ -213,6 +221,7 @@ class DashboardController extends Controller
     {
         $documentTypes = DocumentType::where('is_active', true)->get();
         $purposes = RequestPurpose::where('is_active', true)->get();
+        $othersPurpose = RequestPurpose::where('code', 'OTHERS')->first();
         $resident = Auth::user()->resident;
 
         $activeRequests = DocumentRequest::where('resident_id', $resident->id)
@@ -227,6 +236,7 @@ class DashboardController extends Controller
         return view('resident.new-request', compact(
             'documentTypes',
             'purposes',
+            'othersPurpose',
             'resident',
             'activeCount',
             'activeDocumentTypeIds',
@@ -260,6 +270,8 @@ class DashboardController extends Controller
         $documentRequest = $this->createDocumentRequest($resident, $validated);
 
         $this->wFQService->enqueue($documentRequest);
+
+        NotificationService::notifyPersonnelOfNewRequest($documentRequest);
 
         return redirect()->route('resident.requests')
             ->with('success', 'Document request submitted successfully. Your queue number is '.$documentRequest->queue_number);

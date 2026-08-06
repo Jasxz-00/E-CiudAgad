@@ -11,8 +11,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="flex-1">
-                    <h3 class="font-semibold text-accent-700 dark:text-accent-300 dark:text-accent-300">Account Created Successfully!</h3>
-                    <p class="text-sm text-accent-700 dark:text-accent-300 dark:text-accent-400 mb-3">Please save your credentials below. They will not be shown again.</p>
+                    <h3 class="font-semibold text-accent-700 dark:text-accent-300">Screenshot This!</h3>
+                    <p class="text-sm text-accent-700 dark:text-accent-300 mb-3">Your account is created successfully. Please save your credentials below.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm font-mono bg-gray-50 dark:bg-gray-950 rounded-lg p-3">
                         <div class="sm:col-span-2"><span class="text-gray-600 dark:text-gray-400">Tracking Number:</span> <strong class="text-gray-900 dark:text-gray-100">{{ session('credentials.tracking_number') }}</strong></div>
                         <div class="sm:col-span-2"><span class="text-gray-600 dark:text-gray-400">PIN:</span> <strong class="text-gray-900 dark:text-gray-100">{{ session('credentials.pin') }}</strong></div>
@@ -20,16 +20,16 @@
                         <div><span class="text-gray-600 dark:text-gray-400">Queue #:</span> <strong class="text-primary-700 dark:text-primary-400">{{ session('credentials.queue_number') }}</strong></div>
                     </div>
                 </div>
-                <button onclick="this.closest('.rounded-xl').remove()" class="text-accent-700 dark:text-accent-300 dark:text-accent-300 hover:text-accent-900" aria-label="Dismiss">&times;</button>
+                <button onclick="this.closest('.rounded-xl').remove()" class="text-accent-700 hover:text-accent-900" aria-label="Dismiss">&times;</button>
             </div>
         </div>
     @endif
 
     <div class="mb-4">
-        <button type="button" onclick="history.back()" class="btn-ghost inline-flex items-center gap-2 text-sm" aria-label="Go back">
+        <a href="{{ route('resident.requests') }}" wire:navigate class="btn-ghost inline-flex items-center gap-2 text-sm" aria-label="Go back">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             {{ __('common.back') }}
-        </button>
+        </a>
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -81,7 +81,7 @@
         <x-card>
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('common.notifications') }}</h2>
-                <a href="{{ route('resident.requests') }}" class="text-sm text-primary-700 dark:text-primary-400 hover:underline">{{ __('common.view') }}</a>
+                <a href="{{ route('notifications.index') }}" class="text-sm text-primary-700 dark:text-primary-400 hover:underline">{{ __('common.view') }}</a>
             </div>
 
             @if($notifications->isEmpty())
@@ -90,14 +90,16 @@
                     description="{{ __('common.new_request') }}" />
             @else
                 <div class="space-y-3">
-                    @foreach($notifications as $notif)
-                        <div class="flex items-start justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    @foreach($notifications as $notification)
+                        @php $data = $notification->data; @endphp
+                        <a href="{{ route('notifications.read', $notification->id) }}" class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors {{ $notification->read_at ? 'opacity-70' : '' }}">
+                            <span class="mt-1.5 w-2 h-2 rounded-full shrink-0 {{ $notification->read_at ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-600' }}"></span>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $notif->documentType?->name }}</p>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ $notif->created_at->diffForHumans() }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $data['title'] ?? '' }}</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400 truncate">{{ $data['message'] ?? '' }}</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>
                             </div>
-                            <x-badge :status="$notif->status" class="shrink-0 ml-2" />
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @endif

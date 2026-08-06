@@ -7,7 +7,7 @@
     <div class="w-full max-w-md">
         <x-card>
             @if(session('insistence_submitted'))
-                <div class="mb-4 p-3 bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300 dark:text-accent-300 rounded-xl text-sm">
+                <div class="mb-4 p-3 bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300 rounded-xl text-sm">
                     Your claim has been submitted. Barangay Staff will review your case and contact you.
                 </div>
             @endif
@@ -36,13 +36,14 @@
                     <input type="hidden" name="login_type" value="resident">
 
                     <x-input name="tracking_number" label="Tracking Number" required
-                        placeholder="EC-XXXXX-XXXXX"
+                        placeholder="e.g., EC-ABC-123"
                         class="uppercase-input"
                         autocomplete="off"
                         :error="$errors->first('tracking_number')" />
 
                     <x-input name="pin" label="PIN" type="password" required
                         placeholder="Enter your 6-digit PIN"
+                        maxlength="6" inputmode="numeric"
                         autocomplete="current-password"
                         :error="$errors->first('pin')" />
 
@@ -51,7 +52,7 @@
                     <button type="submit" class="btn-primary w-full">Log In</button>
 
                     <div class="text-center">
-                        <a href="{{ route('password.request') }}" wire:navigate class="text-sm text-primary-700 dark:text-primary-400 font-medium hover:underline">Forgot Password?</a>
+                        <a href="{{ route('password.request') }}" wire:navigate class="text-sm text-primary-700 dark:text-primary-400 font-medium hover:underline">Forgot PIN?</a>
                     </div>
                 </form>
 

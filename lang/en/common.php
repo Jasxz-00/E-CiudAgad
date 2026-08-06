@@ -50,6 +50,8 @@ return [
     'concerns' => 'Concerns',
     'submit_concern' => 'Submit a Concern',
     'track_status' => 'Track Status',
+    'register_resident' => 'Register Resident',
+    'file_request' => 'File a Request',
     'pending' => 'Pending',
     'reviewing' => 'Reviewing',
     'approved' => 'Approved',

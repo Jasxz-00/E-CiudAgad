@@ -47,15 +47,22 @@
                     @if(in_array($request->status, ['reviewing']))
                     <form method="POST" action="{{ route('personnel.request.approve', $request->id) }}">
                         @csrf
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 hover:bg-green-700/90 text-white px-4 py-2 rounded-xl text-sm font-medium transition">{{ __('common.approved') }}</button>
+                        <button type="submit" class="btn-primary text-sm">{{ __('common.approved') }}</button>
                     </form>
-                    <button @@click="showRejectForm = !showRejectForm" class="bg-red-600 hover:bg-red-700 hover:bg-red-700/90 text-white px-4 py-2 rounded-xl text-sm font-medium transition">{{ __('common.rejected') }}</button>
+                    <button @@click="showRejectForm = !showRejectForm" class="btn-danger text-sm">{{ __('common.rejected') }}</button>
                     @endif
 
                     @if(in_array($request->status, ['approved']))
                     <form method="POST" action="{{ route('personnel.request.complete', $request->id) }}">
                         @csrf
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 hover:bg-green-700/90 text-white px-4 py-2 rounded-xl text-sm font-medium transition">{{ __('common.completed') }}</button>
+                        <button type="submit" class="btn-primary text-sm">{{ __('common.completed') }}</button>
+                    </form>
+                    @endif
+
+                    @if(in_array($request->status, ['completed']))
+                    <form method="POST" action="{{ route('personnel.request.release', $request->id) }}">
+                        @csrf
+                        <button type="submit" class="btn-accent text-sm">{{ __('common.released') }}</button>
                     </form>
                     @endif
                 </div>
@@ -66,7 +73,7 @@
                         <label for="rejection_reason" class="label">{{ __('common.rejected') }} {{ __('common.reason') }}</label>
                         <textarea id="rejection_reason" name="rejection_reason" rows="3" class="input-field" required placeholder="{{ __('common.rejected') }}..." autocomplete="off"></textarea>
                         <div class="flex gap-2 mt-2">
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 hover:bg-red-700/90 text-white px-4 py-2 rounded-xl text-sm font-medium">{{ __('common.confirm') }}</button>
+                            <button type="submit" class="btn-danger text-sm">{{ __('common.confirm') }}</button>
                             <button type="button" @@click="showRejectForm = false" class="btn-ghost text-sm">{{ __('common.cancel') }}</button>
                         </div>
                     </form>
@@ -167,7 +174,7 @@
                     @foreach($request->resident->idVerifications as $idv)
                     <div class="text-sm space-y-1">
                         <p><span class="text-gray-600 dark:text-gray-400">{{ __('common.type') }}:</span> {{ str_replace('_', ' ', ucfirst($idv->id_type)) }}</p>
-                        <p><span class="text-gray-600 dark:text-gray-400">{{ __('common.status') }}:</span> {!! $idv->is_verified ? '<span class="text-green-600 dark:text-green-400 font-medium">'.__('common.verified').'</span>' : '<span class="text-accent-700 dark:text-accent-300 dark:text-accent-400 font-medium">'.__('common.pending').'</span>' !!}</p>
+                        <p><span class="text-gray-600 dark:text-gray-400">{{ __('common.status') }}:</span> {!! $idv->is_verified ? '<span class="text-green-600 dark:text-green-400 font-medium">'.__('common.verified').'</span>' : '<span class="text-accent-700 dark:text-accent-300 font-medium">'.__('common.pending').'</span>' !!}</p>
                     </div>
                     @endforeach
                 @else

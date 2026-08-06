@@ -130,9 +130,13 @@ class RegisterController extends Controller
                     $this->fileService->deleteFile($statusVerificationPath);
                 }
 
+                $storableData = collect($validated)
+                    ->except(['id_scan_front', 'id_scan_back', 'status_verification_photo', 'submission_id'])
+                    ->all();
+
                 session()->put('duplicate_found', true);
                 session()->put('duplicate_resident_name', $duplicateResident->full_name);
-                session()->put('duplicate_registration_data', $validated);
+                session()->put('duplicate_registration_data', $storableData);
 
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -188,6 +192,7 @@ class RegisterController extends Controller
                 'building_no' => $validated['building_no'] ?? null ? strtoupper($validated['building_no']) : null,
                 'unit_no' => $validated['unit_no'] ?? null ? strtoupper($validated['unit_no']) : null,
                 'street' => strtoupper($validated['street'] ?? 'MOLINO I'),
+                'road' => $validated['road'] ?? null ? strtoupper($validated['road']) : 'MOLINO ROAD',
                 'subdivision' => $validated['subdivision'] ?? null ? strtoupper($validated['subdivision']) : null,
                 'barangay' => strtoupper($validated['barangay'] ?? 'MOLINO I'),
                 'purok' => $validated['purok'] ?? null ? strtoupper($validated['purok']) : null,
@@ -213,6 +218,8 @@ class RegisterController extends Controller
             $documentRequest = $this->createDocumentRequest($resident, $validated);
 
             $this->wFQService->enqueue($documentRequest);
+
+            \App\Services\NotificationService::notifyPersonnelOfNewRequest($documentRequest);
 
             if ($assistedMode && ! empty($validated['staff_badge'])) {
                 PersonnelRegistration::create([
@@ -337,6 +344,10 @@ class RegisterController extends Controller
         if (! $data) {
             return redirect()->route('register')->withErrors(['duplicate' => 'Session expired. Please fill out the registration form again.']);
         }
+
+        $data = collect($data)
+            ->except(['id_scan_front', 'id_scan_back', 'status_verification_photo', 'submission_id'])
+            ->all();
 
         $duplicateResident = Resident::where('first_name', strtoupper($data['first_name']))
             ->where('last_name', strtoupper($data['last_name']))

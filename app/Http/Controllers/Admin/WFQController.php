@@ -37,8 +37,10 @@ class WFQController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        $configKey = trim($validated['config_key']);
+
         $exists = WFQConfiguration::where('config_type', $validated['config_type'])
-            ->where('config_key', $validated['config_key'])
+            ->where('config_key', $configKey)
             ->exists();
 
         if ($exists) {
@@ -49,7 +51,7 @@ class WFQController extends Controller
 
         WFQConfiguration::create([
             'config_type' => $validated['config_type'],
-            'config_key' => trim($validated['config_key']),
+            'config_key' => $configKey,
             'config_value' => $validated['config_value'],
             'weight' => $validated['weight'],
             'is_active' => $request->boolean('is_active', false),

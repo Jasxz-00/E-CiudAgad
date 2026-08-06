@@ -25,7 +25,7 @@
 
         @if($concern->admin_notes)
             <div class="mt-6 p-4 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-xl">
-                <p class="text-xs text-accent-700 dark:text-accent-300 dark:text-accent-400 font-medium mb-1">Staff Response</p>
+                <p class="text-xs text-accent-700 dark:text-accent-300 font-medium mb-1">Staff Response</p>
                 <p class="text-sm text-gray-900 dark:text-gray-100">{{ $concern->admin_notes }}</p>
             </div>
         @endif

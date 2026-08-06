@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Resident;
 
 use App\Http\Controllers\Controller;
 use App\Models\Concern;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,12 +30,14 @@ class ConcernController extends Controller
 
         $resident = Auth::user()->resident;
 
-        Concern::create([
+        $concern = Concern::create([
             'resident_id' => $resident->id,
             'subject' => $validated['subject'],
             'message' => $validated['message'],
             'status' => 'pending',
         ]);
+
+        NotificationService::notifyPersonnelOfNewConcern($concern);
 
         return redirect()->route('resident.concerns')
             ->with('success', 'Your concern has been submitted successfully.');

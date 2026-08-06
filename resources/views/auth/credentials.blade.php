@@ -16,7 +16,7 @@
             <p class="text-gray-600 dark:text-gray-400 mb-6">Your account has been created successfully. Please save your credentials below.</p>
 
             <div class="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-xl p-6 mb-6 text-left">
-                <h2 class="font-semibold text-accent-700 dark:text-accent-300 dark:text-accent-300 mb-4">Your Account Credentials</h2>
+                <h2 class="font-semibold text-accent-700 dark:text-accent-300 mb-4">Your Account Credentials</h2>
 
                 <div class="space-y-3">
                     <div>
@@ -38,7 +38,7 @@
                 </div>
 
                 <div class="mt-4 p-3 bg-accent-50 dark:bg-accent-900/20 rounded-lg">
-                    <p class="text-sm text-accent-700 dark:text-accent-300 dark:text-accent-300">
+                    <p class="text-sm text-accent-700 dark:text-accent-300">
                         <strong>IMPORTANT:</strong> Please save these credentials. You will need them to log in and track your document request. These credentials will not be shown again.
                     </p>
                 </div>

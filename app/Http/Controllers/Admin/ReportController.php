@@ -4,17 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DocumentRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    protected function parseDate(?string $value, bool $isEnd = false): Carbon
+    {
+        $date = Carbon::parse($value ?? ($isEnd ? now()->format('Y-m-d') : now()->startOfMonth()->format('Y-m-d')));
+
+        return $isEnd ? $date->endOfDay() : $date->startOfDay();
+    }
+
     public function index(Request $request)
     {
         $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
 
         $requests = DocumentRequest::with(['documentType', 'purpose', 'resident'])
-            ->whereBetween('created_at', [$dateFrom, $dateTo.' 23:59:59'])
+            ->whereBetween('created_at', [$this->parseDate($dateFrom), $this->parseDate($dateTo, true)])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -48,7 +56,7 @@ class ReportController extends Controller
         ];
 
         $requests = DocumentRequest::with(['resident', 'documentType', 'purpose'])
-            ->whereBetween('created_at', [$dateFrom, $dateTo.' 23:59:59'])
+            ->whereBetween('created_at', [$this->parseDate($dateFrom), $this->parseDate($dateTo, true)])
             ->orderBy('created_at', 'desc')
             ->get();
 

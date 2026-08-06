@@ -67,24 +67,26 @@ body {
 }
 
 /* ===== Buttons ===== */
-.btn-primary { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:#1E40AF; color:white; font-weight:600; border-radius:0.75rem; transition:all 0.2s; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); min-height:44px; min-width:44px; }
-.btn-primary:hover { background-color:#1D4ED8; box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1); }
-.dark .btn-primary { background-color:#1D4ED8; }
-.btn-accent { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:#F59E0B; color:#451A03; font-weight:600; border-radius:0.75rem; transition:all 0.2s; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); min-height:44px; min-width:44px; }
-.btn-accent:hover { background-color:#FBBF24; box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1); }
-.dark .btn-accent { background-color:#FBBF24; color:#451A03; }
-.dark .btn-accent:hover { background-color:#FCD34D; }
-.btn-outline { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; border:2px solid #fdfefe; color:#fdfefe; font-weight:600; border-radius:0.75rem; transition:all 0.2s; min-height:44px; min-width:44px; }
-.btn-outline:hover { background-color:#75a7e8; }
-.dark .btn-outline { border-color:#60A5FA; color:#60A5FA; }
-.dark .btn-outline:hover { background-color:rgba(30,64,175,0.3); }
+.btn-primary { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:var(--color-primary-700); color:white; font-weight:600; border-radius:0.75rem; transition:all 0.2s; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); min-height:44px; min-width:44px; }
+.btn-primary:hover { background-color:var(--color-primary-800); box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1); }
+.dark .btn-primary { background-color:var(--color-primary-600); }
+.dark .btn-primary:hover { background-color:var(--color-primary-500); }
+.btn-accent { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:var(--color-accent-500); color:#451A03; font-weight:600; border-radius:0.75rem; transition:all 0.2s; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); min-height:44px; min-width:44px; }
+.btn-accent:hover { background-color:var(--color-accent-400); box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1); }
+.dark .btn-accent { background-color:var(--color-accent-400); color:#451A03; }
+.dark .btn-accent:hover { background-color:var(--color-accent-300); }
+.btn-outline { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; border:2px solid var(--color-primary-700); color:var(--color-primary-700); background-color:transparent; font-weight:600; border-radius:0.75rem; transition:all 0.2s; min-height:44px; min-width:44px; }
+.btn-outline:hover { background-color:var(--color-primary-50); color:var(--color-primary-800); }
+.dark .btn-outline { border-color:var(--color-primary-400); color:var(--color-primary-400); }
+.dark .btn-outline:hover { background-color:rgba(30,64,175,0.3); color:var(--color-primary-300); }
 .btn-ghost { display:inline-flex; align-items:center; justify-content:center; padding:0.5rem 1rem; color:#374151; font-weight:600; border-radius:0.75rem; transition:all 0.2s; min-height:44px; min-width:44px; }
 .btn-ghost:hover { background-color:#F3F4F6; }
 .dark .btn-ghost { color:#D1D5DB; }
 .dark .btn-ghost:hover { background-color:#1F2937; }
-.btn-danger { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:#DC2626; color:white; font-weight:600; border-radius:0.75rem; transition:all 0.2s; min-height:44px; min-width:44px; }
+.btn-danger { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1.5rem; background-color:var(--color-danger); color:white; font-weight:600; border-radius:0.75rem; transition:all 0.2s; min-height:44px; min-width:44px; }
 .btn-danger:hover { background-color:#B91C1C; }
 .btn-sm { padding:0.5rem 1rem; font-size:0.875rem; min-height:36px; min-width:36px; }
+.btn-lg { padding:0.875rem 2rem; font-size:1.125rem; min-height:52px; min-width:52px; }
 
 /* ===== Cards ===== */
 .card { background-color:white; border-radius:1rem; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); border:1px solid #E5E7EB; padding:1.5rem; }

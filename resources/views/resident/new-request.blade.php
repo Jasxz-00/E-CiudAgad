@@ -5,9 +5,9 @@
 @section('content')
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex items-center gap-3 mb-6">
-        <button type="button" onclick="history.back()" class="btn-ghost p-2" aria-label="Go back">
+        <a href="{{ route('resident.requests') }}" wire:navigate class="btn-ghost p-2" aria-label="Go back">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </button>
+        </a>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">New Document Request</h1>
     </div>
 
@@ -53,7 +53,9 @@
 
             <div>
                 <label for="purpose_id" class="label">Purpose <span class="text-red-600 dark:text-red-400">*</span></label>
-                <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" @@change="otherPurposeVisible = $event.target.options[$event.target.selectedIndex]?.text === 'Others'">
+                <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off"
+                    data-others-id="{{ $othersPurpose?->id ?? '' }}"
+                    @@change="otherPurposeVisible = $event.target.value === $el.dataset.othersId">
                     <option value="">Select Purpose</option>
                     @foreach($purposes as $purpose)
                         <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }}>{{ $purpose->name }}</option>

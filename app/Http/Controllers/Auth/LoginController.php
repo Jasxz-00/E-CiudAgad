@@ -46,6 +46,11 @@ class LoginController extends Controller
                 throw ValidationException::withMessages(['login' => 'Your account has been deactivated.']);
             }
 
+            if ($user->role === 'resident') {
+                Auth::logout();
+                throw ValidationException::withMessages(['login' => 'Residents must log in using your Tracking Number and PIN.']);
+            }
+
             return match ($user->role) {
                 'admin' => redirect()->intended(route('admin.dashboard')),
                 'personnel' => redirect()->intended(route('personnel.dashboard')),
