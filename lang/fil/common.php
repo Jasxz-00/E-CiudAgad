@@ -96,6 +96,8 @@ return [
     'address' => 'Tirahan',
     'type' => 'Uri',
     'id_number' => 'ID Number',
+    'id_front' => 'Harapan ng ID',
+    'id_back' => 'Likuran ng ID',
     'verified' => 'Na-verify',
     'close' => 'Isara',
     'reason' => 'Dahilan',

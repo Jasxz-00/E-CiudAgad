@@ -155,34 +155,25 @@
                         <option value="school_id" {{ old('id_type') == 'school_id' ? 'selected' : '' }}>School ID</option>
                     </select>
                     @error('id_type') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                    @php $idv = app(\App\Services\IdValidationService::class); @endphp
-                    @if(old('id_type') && $idv->getPatternDescription(old('id_type')))
-                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">{{ __('Expected format') }}: {{ $idv->getPatternDescription(old('id_type')) }}</p>
-                    @endif
                 </div>
-                <x-input name="id_number" label="ID Number" required :value="old('id_number')" class="uppercase-input" autocomplete="off" />
+            <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <label for="id_scan_front" class="label font-semibold text-gray-900 dark:text-gray-100">Front of ID <span class="text-red-600 dark:text-red-400">*</span></label>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Upload a clear photo of the front side of the ID showing the name and photo.</p>
+                <input id="id_scan_front" type="file" name="id_scan_front" accept=".jpg,.jpeg,.png"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700 hover:file:bg-primary-100 dark:bg-primary-900/30"
+                       autocomplete="off">
+                <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                @error('id_scan_front') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
             </div>
 
             <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                <label for="id_scan" class="label font-semibold text-gray-900 dark:text-gray-100">Scan Government ID <span class="text-red-600 dark:text-red-400">*</span></label>
-                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Upload a clear image of the ID. The system will attempt to read the ID number automatically.</p>
-                <div class="flex items-center gap-4">
-                    <div class="flex-1">
-                        <input id="id_scan" type="file" name="id_scan" accept=".jpg,.jpeg,.png"
-                               class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700 hover:file:bg-primary-100 dark:bg-primary-900/30"
-                               autocomplete="off"
-                               onchange="handleOcrUpload(event)">
-                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
-                    </div>
-                    <div id="ocr-spinner" class="hidden flex items-center gap-2 text-sm text-primary-700 dark:text-primary-400">
-                        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                        <span>Scanning ID...</span>
-                    </div>
-                </div>
-                <div id="ocr-success" class="mt-3 hidden p-3 bg-green-600/10 text-green-600 dark:text-green-400 border border-success/20 rounded-lg text-sm"></div>
-                <div id="ocr-error" class="mt-3 hidden p-3 bg-red-600/10 text-red-600 dark:text-red-400 border border-danger/20 rounded-lg text-sm"></div>
-                <input type="hidden" name="ocr_confidence" id="ocr_confidence" value="0">
-                <input type="hidden" name="ocr_extracted" id="ocr_extracted" value="">
+                <label for="id_scan_back" class="label font-semibold text-gray-900 dark:text-gray-100">Back of ID <span class="text-red-600 dark:text-red-400">*</span></label>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Upload a clear photo of the back side of the ID.</p>
+                <input id="id_scan_back" type="file" name="id_scan_back" accept=".jpg,.jpeg,.png"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700 hover:file:bg-primary-100 dark:bg-primary-900/30"
+                       autocomplete="off">
+                <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                @error('id_scan_back') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
             </div>
 
             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Document Request</h2>
@@ -220,122 +211,4 @@
     </div>
 </div>
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-@endpush
-
-<script>
-const idFormats = {
-    phil_id: { pattern: /^\d{4}-\d{4}-\d{4}-\d{4}$/, hint: '1234-5678-9012-3456' },
-    passport: { pattern: /^[A-Z]\d{7}[A-Z]$|^[A-Z]{2}\d{7}$/, hint: 'P1234567A or AA1234567' },
-    umid: { pattern: /^\d{4}-\d{7}-\d$/, hint: '0033-1234567-8' },
-    philhealth: { pattern: /^\d{2}-\d{9}-\d$/, hint: '11-201534404-7' },
-    drivers_license: { pattern: /^[A-Z]\d{2}-\d{2}-\d{6}$/, hint: 'D01-12-345678' },
-    prc_id: { pattern: /^\d{7}$/, hint: '0123456' },
-    postal_id: { pattern: /^\d{4}-\d{4}-\d{4}$/, hint: '1234-5678-9012' },
-    sss_id: { pattern: /^\d{2}-\d{7}-\d$/, hint: '34-1234567-8' },
-    tin_id: { pattern: /^\d{3}-\d{3}-\d{3}-\d{3,4}$/, hint: '123-456-789-000' },
-    ibp_id: { pattern: /^\d{5}$/, hint: '12345' },
-    owwa_ofw_id: { pattern: /^\d{10}$/, hint: '1234567890' },
-    barangay_id: { pattern: null, hint: null },
-    school_id: { pattern: null, hint: null },
-};
-
-async function handleOcrUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const idType = document.getElementById('id_type').value;
-    if (!idType) {
-        document.getElementById('ocr-error').textContent = 'Please select an ID type first.';
-        document.getElementById('ocr-error').classList.remove('hidden');
-        document.getElementById('ocr-success').classList.add('hidden');
-        event.target.value = '';
-        return;
-    }
-
-    document.getElementById('ocr-spinner').classList.remove('hidden');
-    document.getElementById('ocr-error').classList.add('hidden');
-    document.getElementById('ocr-success').classList.add('hidden');
-    document.getElementById('ocr_extracted').value = '';
-    document.getElementById('ocr_confidence').value = '0';
-
-    try {
-        const img = new Image();
-        const reader = new FileReader();
-        const imgLoad = new Promise((resolve) => { img.onload = resolve; });
-
-        reader.readAsDataURL(file);
-        await new Promise((resolve) => { reader.onload = resolve; });
-        img.src = reader.result;
-        await imgLoad;
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const maxDim = 2048;
-        let w = img.width, h = img.height;
-        if (w > maxDim || h > maxDim) {
-            const scale = Math.min(maxDim / w, maxDim / h);
-            w *= scale; h *= scale;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
-
-        const result = await Tesseract.recognize(canvas, 'eng', { logger: () => {} });
-
-        const text = result.data.text.toUpperCase();
-        const words = result.data.words || [];
-        const avgConfidence = words.length > 0
-            ? words.reduce((sum, w) => sum + w.confidence, 0) / words.length
-            : result.data.confidence || 0;
-
-        const confidence = Math.round(avgConfidence);
-        document.getElementById('ocr_confidence').value = confidence;
-
-        if (confidence < 30) {
-            document.getElementById('ocr-error').textContent = 'ID image not detected or unreadable. Please retake or re-upload a clearer image.';
-            document.getElementById('ocr-error').classList.remove('hidden');
-            document.getElementById('ocr-spinner').classList.add('hidden');
-            return;
-        }
-
-        const fmt = idFormats[idType];
-        let extracted = '';
-
-        if (fmt && fmt.pattern) {
-            const lines = text.split('\n');
-            for (const line of lines) {
-                const trimmed = line.replace(/\s+/g, '').trim();
-                if (fmt.pattern.test(trimmed)) {
-                    extracted = trimmed;
-                    break;
-                }
-            }
-        } else {
-            const lines = text.split('\n').filter(l => l.trim().length > 3);
-            if (lines.length > 0) {
-                extracted = lines[0].trim().replace(/\s+/g, '');
-            }
-        }
-
-        if (extracted && (!fmt || !fmt.pattern || fmt.pattern.test(extracted))) {
-            document.getElementById('ocr_extracted').value = extracted;
-            document.getElementById('ocr-success').textContent = 'ID Number detected: ' + extracted + ' (confidence: ' + confidence + '%)';
-            document.getElementById('ocr-success').classList.remove('hidden');
-
-            const idNumberInput = document.querySelector('input[name="id_number"]');
-            if (idNumberInput) idNumberInput.value = extracted;
-        } else {
-            document.getElementById('ocr-error').textContent = 'ID image not detected or unreadable. Please retake or re-upload a clearer image.';
-            document.getElementById('ocr-error').classList.remove('hidden');
-        }
-    } catch (e) {
-        document.getElementById('ocr-error').textContent = 'OCR processing failed. Please try again.';
-        document.getElementById('ocr-error').classList.remove('hidden');
-    } finally {
-        document.getElementById('ocr-spinner').classList.add('hidden');
-    }
-}
-</script>
 @endsection

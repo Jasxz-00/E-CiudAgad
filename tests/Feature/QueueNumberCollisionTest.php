@@ -130,7 +130,6 @@ class QueueNumberCollisionTest extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
-            'id_number' => '1234-5678-9012-3456',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -144,7 +143,8 @@ class QueueNumberCollisionTest extends TestCase
         $this->seedDesyncedQueueNumbers($this->createExistingResident());
 
         $response = $this->post(route('register'), array_merge($this->registrationData(), [
-            'id_scan' => $this->createTestIdImage(),
+            'id_scan_front' => $this->createTestIdImage(),
+            'id_scan_back' => $this->createTestIdImage(),
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',

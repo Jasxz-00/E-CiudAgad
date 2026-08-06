@@ -93,12 +93,19 @@ class Resident extends Model
         if ($this->unit_no) {
             $parts[] = 'UNIT '.$this->unit_no;
         }
+        if ($this->street) {
+            $parts[] = $this->street;
+        }
         if ($this->road) {
             $parts[] = $this->road;
         }
-        $parts[] = $this->subdivision;
-        $parts[] = $this->barangay;
-        $parts[] = $this->city.', '.$this->province;
+        if ($this->subdivision) {
+            $parts[] = $this->subdivision;
+        }
+        if ($this->barangay) {
+            $parts[] = $this->barangay;
+        }
+        $parts[] = $this->city.', '.$this->province.' '.$this->zip_code;
 
         return implode(', ', $parts);
     }

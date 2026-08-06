@@ -84,7 +84,14 @@ class RegistrationController extends Controller
 
         $birthdate = sprintf('%04d-%02d-%02d', $validated['birthdate_year'], $validated['birthdate_month'], $validated['birthdate_day']);
 
-        $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan'));
+        $idFilePath = null;
+        $idBackFilePath = null;
+        if ($request->hasFile('id_scan_front')) {
+            $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan_front'));
+        }
+        if ($request->hasFile('id_scan_back')) {
+            $idBackFilePath = $this->fileService->uploadIdBack($request->file('id_scan_back'));
+        }
 
         DB::beginTransaction();
         try {
@@ -133,21 +140,23 @@ class RegistrationController extends Controller
                     $residentData[$field] = ! empty($validated[$field]) ? strtoupper($validated[$field]) : null;
                 }
             }
-            if (! array_key_exists('road', $residentData)) {
-                $residentData['road'] = 'MOLINO ROAD';
-            }
             if (! array_key_exists('barangay', $residentData)) {
                 $residentData['barangay'] = 'MOLINO I';
             }
+            $residentData['city'] = 'BACOOR CITY';
+            $residentData['province'] = 'CAVITE';
+            $residentData['zip_code'] = '4102';
 
             $resident = Resident::create($residentData);
 
             $resident->idVerifications()->create([
                 'id_type' => $validated['id_type'],
-                'id_number' => strtoupper($validated['id_number']),
                 'file_path' => $idFilePath,
-                'file_type' => $request->file('id_scan')->getClientOriginalExtension(),
-                'file_size' => $request->file('id_scan')->getSize(),
+                'file_type' => $request->hasFile('id_scan_front') ? $request->file('id_scan_front')->getClientOriginalExtension() : null,
+                'file_size' => $request->hasFile('id_scan_front') ? $request->file('id_scan_front')->getSize() : null,
+                'back_file_path' => $idBackFilePath,
+                'back_file_type' => $request->hasFile('id_scan_back') ? $request->file('id_scan_back')->getClientOriginalExtension() : null,
+                'back_file_size' => $request->hasFile('id_scan_back') ? $request->file('id_scan_back')->getSize() : null,
             ]);
 
             $documentRequest = $resident->documentRequests()->create([
@@ -168,8 +177,6 @@ class RegistrationController extends Controller
                     'tracking_number' => $trackingNumber,
                     'queue_number' => $documentRequest->queue_number,
                     'staff_badge' => $validated['staff_badge'] ?? null,
-                    'ocr_confidence' => $validated['ocr_confidence'] ?? null,
-                    'ocr_extracted' => $validated['ocr_extracted'] ?? null,
                 ],
             ]);
 
@@ -182,6 +189,9 @@ class RegistrationController extends Controller
             DB::rollBack();
             if ($idFilePath) {
                 $this->fileService->deleteFile($idFilePath);
+            }
+            if ($idBackFilePath) {
+                $this->fileService->deleteFile($idBackFilePath);
             }
             if ($statusVerificationPath) {
                 $this->fileService->deleteFile($statusVerificationPath);

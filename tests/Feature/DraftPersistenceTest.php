@@ -106,13 +106,14 @@ class DraftPersistenceTest extends TestCase
         $response->assertSee('person_status', false);
     }
 
-    public function test_id_format_hints_are_present(): void
+    public function test_id_front_back_upload_state_is_present(): void
     {
         $response = $this->get(route('register'));
 
         $response->assertStatus(200);
-        $response->assertSee('validateIdFormat', false);
-        $response->assertSee('idFormatHint', false);
-        $response->assertSee('idFormatError', false);
+        $response->assertSee('idScanFrontSelected', false);
+        $response->assertSee('idScanBackSelected', false);
+        $response->assertSee('id_scan_front', false);
+        $response->assertSee('id_scan_back', false);
     }
 }

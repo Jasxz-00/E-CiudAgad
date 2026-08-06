@@ -70,12 +70,12 @@ class PersonnelRegistrationControllerTest extends TestCase
 
         $response->assertSessionHasErrors([
             'first_name', 'last_name', 'contact_number',
-            'emergency_contact', 'id_type', 'id_number', 'id_scan',
+            'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back',
             'document_type_id', 'purpose_id',
         ]);
     }
 
-    public function test_store_saves_road_default(): void
+    public function test_store_saves_default_location(): void
     {
         $personnel = User::factory()->create(['role' => 'personnel']);
         $personnel->assignRole('personnel');
@@ -94,7 +94,6 @@ class PersonnelRegistrationControllerTest extends TestCase
         $payload['contact_number'] = '0917-111-2222';
         $payload['emergency_contact'] = '0922-333-4444';
         $payload['id_type'] = 'passport';
-        $payload['id_number'] = 'P1234567A';
         $payload['middle_name_none'] = 1;
         unset($payload['road']);
 
@@ -106,7 +105,10 @@ class PersonnelRegistrationControllerTest extends TestCase
         $this->assertDatabaseHas('residents', [
             'first_name' => 'MARIA',
             'last_name' => 'SANTOS',
-            'road' => 'MOLINO ROAD',
+            'road' => null,
+            'city' => 'BACOOR CITY',
+            'province' => 'CAVITE',
+            'zip_code' => '4102',
             'middle_name_none' => 1,
             'middle_name' => null,
         ]);
@@ -129,7 +131,6 @@ class PersonnelRegistrationControllerTest extends TestCase
         $payload['birthdate_year'] = 1988;
         $payload['contact_number'] = '0917-555-6666';
         $payload['emergency_contact'] = '0922-777-8888';
-        $payload['id_number'] = '9876-5432-1098-7654';
         $payload['road'] = 'AGUINALDO HIGHWAY';
 
         $response = $this->actingAs($personnel)->post(route('personnel.registrations.store'), $payload);
@@ -177,8 +178,8 @@ class PersonnelRegistrationControllerTest extends TestCase
             'emergency_contact' => '0922-987-6543',
             'nationality' => 'FILIPINO',
             'id_type' => 'phil_id',
-            'id_number' => '1234-5678-9012-3456',
-            'id_scan' => $this->createTestIdImage(),
+            'id_scan_front' => $this->createTestIdImage(),
+            'id_scan_back' => $this->createTestIdImage(),
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'privacy_consent' => 1,

@@ -9,7 +9,17 @@ class FileService
 {
     public function uploadIdFile(UploadedFile $file): string
     {
-        $filename = 'id_'.time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+        return $this->storeIdFile($file, 'id_');
+    }
+
+    public function uploadIdBack(UploadedFile $file): string
+    {
+        return $this->storeIdFile($file, 'id_back_');
+    }
+
+    protected function storeIdFile(UploadedFile $file, string $prefix): string
+    {
+        $filename = $prefix.time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
 
         return $file->storeAs('id_verifications', $filename, 'private');
     }

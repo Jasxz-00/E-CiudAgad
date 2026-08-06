@@ -148,7 +148,8 @@ class RegisterController extends Controller
             }
         }
 
-        $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan'));
+        $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan_front'));
+        $idBackFilePath = $this->fileService->uploadIdBack($request->file('id_scan_back'));
 
         DB::beginTransaction();
         try {
@@ -192,16 +193,21 @@ class RegisterController extends Controller
                 'purok' => $validated['purok'] ?? null ? strtoupper($validated['purok']) : null,
                 'contact_number' => $validated['contact_number'],
                 'emergency_contact' => $validated['emergency_contact'],
+                'city' => 'BACOOR CITY',
+                'province' => 'CAVITE',
+                'zip_code' => '4102',
                 'category' => $category,
                 'category_remarks' => $category === 'pwd' ? 'Pending disability verification' : null,
             ]);
 
             $resident->idVerifications()->create([
                 'id_type' => $validated['id_type'],
-                'id_number' => strtoupper($validated['id_number']),
                 'file_path' => $idFilePath,
-                'file_type' => $request->file('id_scan')->getClientOriginalExtension(),
-                'file_size' => $request->file('id_scan')->getSize(),
+                'file_type' => $request->file('id_scan_front')->getClientOriginalExtension(),
+                'file_size' => $request->file('id_scan_front')->getSize(),
+                'back_file_path' => $idBackFilePath,
+                'back_file_type' => $request->file('id_scan_back')->getClientOriginalExtension(),
+                'back_file_size' => $request->file('id_scan_back')->getSize(),
             ]);
 
             $documentRequest = $this->createDocumentRequest($resident, $validated);
@@ -217,8 +223,6 @@ class RegisterController extends Controller
                         'tracking_number' => $trackingNumber,
                         'queue_number' => $documentRequest->queue_number,
                         'staff_badge' => $validated['staff_badge'],
-                        'ocr_confidence' => $validated['ocr_confidence'] ?? null,
-                        'ocr_extracted' => $validated['ocr_extracted'] ?? null,
                         'source' => 'self-service-assisted',
                     ],
                 ]);
@@ -286,6 +290,9 @@ class RegisterController extends Controller
             DB::rollBack();
             if ($idFilePath) {
                 $this->fileService->deleteFile($idFilePath);
+            }
+            if ($idBackFilePath) {
+                $this->fileService->deleteFile($idBackFilePath);
             }
             if ($statusVerificationPath) {
                 $this->fileService->deleteFile($statusVerificationPath);

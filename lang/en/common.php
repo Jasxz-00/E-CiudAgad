@@ -96,6 +96,8 @@ return [
     'address' => 'Address',
     'type' => 'Type',
     'id_number' => 'ID Number',
+    'id_front' => 'Front of ID',
+    'id_back' => 'Back of ID',
     'verified' => 'Verified',
     'close' => 'Close',
     'reason' => 'Reason',

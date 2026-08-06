@@ -41,12 +41,15 @@ class RegistrationFormRev2Test extends TestCase
         return new UploadedFile($tempPath, 'id.png', 'image/png', null, true);
     }
 
-    public function test_road_field_defaults_to_molino_road(): void
+    public function test_default_location_is_bacoor_city_cavite(): void
     {
         $response = $this->get(route('register'));
 
         $response->assertStatus(200);
-        $response->assertSee('MOLINO ROAD');
+        $response->assertSee('name="city"', false);
+        $response->assertSee('name="province"', false);
+        $response->assertSee('name="zip_code"', false);
+        $response->assertSee('BACOOR CITY, CAVITE 4102');
     }
 
     public function test_road_field_is_present(): void
@@ -133,7 +136,7 @@ class RegistrationFormRev2Test extends TestCase
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonStructure(['errors' => ['first_name', 'last_name', 'contact_number', 'emergency_contact', 'id_type', 'id_number', 'document_type_id', 'purpose_id']]);
+        $response->assertJsonStructure(['errors' => ['first_name', 'last_name', 'contact_number', 'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back', 'document_type_id', 'purpose_id']]);
     }
 
     public function test_valid_registration_creates_account_and_returns_json(): void
@@ -169,7 +172,6 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
-            'id_number' => '1234-5678-9012-3456',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -178,7 +180,8 @@ class RegistrationFormRev2Test extends TestCase
         ];
 
         $response = $this->post(route('register'), array_merge($data, [
-            'id_scan' => $idFile,
+            'id_scan_front' => $idFile,
+            'id_scan_back' => $idFile,
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
@@ -206,12 +209,10 @@ class RegistrationFormRev2Test extends TestCase
         ]);
     }
 
-    public function test_registration_fails_with_visible_errors_when_id_format_invalid(): void
+    public function test_registration_fails_when_id_front_and_back_are_missing(): void
     {
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DocumentTypeSeeder']);
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\RequestPurposeSeeder']);
-
-        $idFile = $this->createTestIdImage();
 
         $data = [
             'first_name' => 'JUAN',
@@ -237,7 +238,6 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
-            'id_number' => 'invalid-format',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -245,15 +245,13 @@ class RegistrationFormRev2Test extends TestCase
             'is_pregnant' => '0',
         ];
 
-        $response = $this->post(route('register'), array_merge($data, [
-            'id_scan' => $idFile,
-        ]), [
+        $response = $this->post(route('register'), $data, [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonStructure(['errors' => ['id_number']]);
+        $response->assertJsonStructure(['errors' => ['id_scan_front', 'id_scan_back']]);
     }
 
     public function test_middle_name_none_checkbox_value_1_passes_validation(): void
@@ -291,7 +289,6 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
-            'id_number' => '1234-5678-9012-3456',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -300,7 +297,8 @@ class RegistrationFormRev2Test extends TestCase
         ];
 
         $response = $this->post(route('register'), array_merge($data, [
-            'id_scan' => $idFile,
+            'id_scan_front' => $idFile,
+            'id_scan_back' => $idFile,
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',

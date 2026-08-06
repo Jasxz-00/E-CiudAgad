@@ -300,19 +300,19 @@
                                 <div>
                                     <label for="road" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('road') || 'Road'"></label>
                                     <input id="road" type="text" name="road" x-model="road"
-                                        class="input-field uppercase-input w-full" placeholder="MOLINO ROAD" autocomplete="off"
-                                        @@input.debounce.500ms="saveDraft()">
-                                </div>
-                                <div>
-                                    <label for="barangay" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('barangay')"></label>
-                                    <input id="barangay" type="text" name="barangay" x-model="barangay"
-                                        class="input-field uppercase-input w-full" placeholder="MOLINO I" autocomplete="address-level2"
+                                        class="input-field uppercase-input w-full" placeholder="e.g., MOLINO ROAD" autocomplete="off"
                                         @@input.debounce.500ms="saveDraft()">
                                 </div>
                                 <div>
                                     <label for="subdivision" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('subdivision')"></label>
                                     <input id="subdivision" type="text" name="subdivision" x-model="subdivision"
                                         class="input-field uppercase-input w-full" placeholder="e.g., PHASE 1" autocomplete="address-line2"
+                                        @@input.debounce.500ms="saveDraft()">
+                                </div>
+                                <div>
+                                    <label for="barangay" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('barangay')"></label>
+                                    <input id="barangay" type="text" name="barangay" x-model="barangay"
+                                        class="input-field uppercase-input w-full" placeholder="MOLINO I" autocomplete="address-level2"
                                         @@input.debounce.500ms="saveDraft()">
                                 </div>
                                 <div>
@@ -324,6 +324,10 @@
                             </div>
                             <input type="hidden" name="city" value="BACOOR CITY">
                             <input type="hidden" name="province" value="CAVITE">
+                            <input type="hidden" name="zip_code" value="4102">
+                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                <span x-text="t('default_location') || 'Default: '"></span> <strong>BACOOR CITY, CAVITE 4102</strong>
+                            </p>
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.street || errors.barangay" x-text="errors.street || errors.barangay"></p>
                             <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-950 rounded-xl text-sm text-gray-600 dark:text-gray-400">
                                 <span class="font-medium" x-text="t('complete_address')"></span><br>
@@ -405,83 +409,85 @@
                             </select>
                             @error('id_type') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_type" x-text="errors.id_type"></p>
-                            <template x-if="idFormatHint">
-                                <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                                    <span x-text="t('expected_format') || 'Expected format'"></span>: <span x-text="idFormatHint"></span>
-                                </p>
-                            </template>
-                        </div>
-                        <div>
-                            <label for="id_number" class="label"><span x-text="t('id_number')"></span> <span class="text-danger">*</span></label>
-                            <input id="id_number" type="text" name="id_number" x-model="idNumber" required
-                                class="input-field uppercase-input @error('id_number') input-error @enderror"
-                                placeholder="Enter your ID number" autocomplete="off"
-                                @@blur="validateIdFormat()"
-                                @@input.debounce.500ms="saveDraft()">
-                            @error('id_number') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_number" x-text="errors.id_number"></p>
-                            <template x-if="idFormatError">
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-text="idFormatError"></p>
-                            </template>
                         </div>
                     </div>
 
                     <div id="id-scan-section">
                     <template x-if="idType">
-                    <div class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                        <label class="label font-semibold text-gray-900 dark:text-gray-100">{{ __('Scan Government ID') }} <span class="text-danger">*</span></label>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">{{ __('Upload a clear image of your ID. The system will attempt to read the ID number automatically.') }}</p>
-                        <template x-if="idScanNeedsReupload">
-                            <div class="mb-3 p-3 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg text-sm text-accent-700 dark:text-accent-300">
-                                <span x-text="t('id_scan_reupload_required')"></span>
-                            </div>
-                        </template>
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_scan" x-text="errors.id_scan"></p>
-
-                        <div class="flex items-center gap-4">
-                            <div class="flex-1">
-                                <input id="id_scan" type="file" name="id_scan" accept=".jpg,.jpeg,.png"
-                                    class="hidden" autocomplete="off"
-                                    @@change="onIdScanChange($event)">
-                                <div class="flex flex-wrap gap-2">
-                                    <button type="button" @@click="selectIdPhoto('camera')"
-                                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
-                                            :class="idScanSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>{{ __('Take Photo') }}</span>
-                                    </button>
-                                    <button type="button" @@click="selectIdPhoto('upload')"
-                                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
-                                            :class="idScanSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
-                                        <span>{{ __('Upload') }}</span>
-                                    </button>
-                                </div>
-                                <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
-                                <template x-if="idScanPreview">
-                                    <img :src="idScanPreview" alt="ID preview" class="mt-3 max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
-                                </template>
-                            </div>
-                            <template x-if="ocrProcessing">
-                                <div class="flex items-center gap-2 text-sm text-primary-700 dark:text-primary-400">
-                                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                                    <span>{{ __('Scanning ID...') }}</span>
+                    <div class="mt-6 space-y-6">
+                        <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                            <label class="label font-semibold text-gray-900 dark:text-gray-100" x-text="t('id_scan_front')"> <span class="text-danger">*</span></label>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-3" x-text="t('id_scan_front_hint')"></p>
+                            <template x-if="idScanFrontNeedsReupload">
+                                <div class="mb-3 p-3 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg text-sm text-accent-700 dark:text-accent-300">
+                                    <span x-text="t('id_scan_reupload_required')"></span>
                                 </div>
                             </template>
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_scan_front" x-text="errors.id_scan_front"></p>
+
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <input id="id_scan_front" type="file" name="id_scan_front" accept=".jpg,.jpeg,.png"
+                                        class="hidden" autocomplete="off"
+                                        @@change="onIdScanChange('front', $event)">
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" @@click="selectIdPhoto('front', 'camera')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                                :class="idScanFrontSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span>{{ __('Take Photo') }}</span>
+                                        </button>
+                                        <button type="button" @@click="selectIdPhoto('front', 'upload')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                                :class="idScanFrontSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
+                                            <span>{{ __('Upload') }}</span>
+                                        </button>
+                                    </div>
+                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                                    <template x-if="idScanFrontPreview">
+                                        <img :src="idScanFrontPreview" alt="ID front preview" class="mt-3 max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                                    </template>
+                                </div>
+                            </div>
                         </div>
 
-                        <template x-if="ocrResult && !ocrError">
-                            <div class="mt-3 p-3 bg-green-600/10 text-green-600 dark:text-green-400 border border-success/20 rounded-lg text-sm">
-                                {{ __('ID Number detected') }}: <strong x-text="ocrResult"></strong>
-                                <span class="text-xs opacity-75 ml-2">({{ __('confidence') }}: <span x-text="ocrConfidence"></span>%)</span>
-                            </div>
-                        </template>
+                        <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                            <label class="label font-semibold text-gray-900 dark:text-gray-100" x-text="t('id_scan_back')"> <span class="text-danger">*</span></label>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-3" x-text="t('id_scan_back_hint')"></p>
+                            <template x-if="idScanBackNeedsReupload">
+                                <div class="mb-3 p-3 bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg text-sm text-accent-700 dark:text-accent-300">
+                                    <span x-text="t('id_scan_reupload_required')"></span>
+                                </div>
+                            </template>
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_scan_back" x-text="errors.id_scan_back"></p>
 
-                        <template x-if="ocrError">
-                            <div class="mt-3 p-3 bg-red-600/10 text-red-600 dark:text-red-400 border border-danger/20 rounded-lg text-sm">
-                                <span x-text="ocrError"></span>
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1">
+                                    <input id="id_scan_back" type="file" name="id_scan_back" accept=".jpg,.jpeg,.png"
+                                        class="hidden" autocomplete="off"
+                                        @@change="onIdScanChange('back', $event)">
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" @@click="selectIdPhoto('back', 'camera')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                                :class="idScanBackSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span>{{ __('Take Photo') }}</span>
+                                        </button>
+                                        <button type="button" @@click="selectIdPhoto('back', 'upload')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                                :class="idScanBackSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
+                                            <span>{{ __('Upload') }}</span>
+                                        </button>
+                                    </div>
+                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                                    <template x-if="idScanBackPreview">
+                                        <img :src="idScanBackPreview" alt="ID back preview" class="mt-3 max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                                    </template>
+                                </div>
                             </div>
-                        </template>
+                        </div>
                     </div>
                     </template>
 
@@ -492,9 +498,6 @@
                         </p>
                     </div>
                     </div>
-
-                    <input type="hidden" name="ocr_confidence" x-bind:value="ocrConfidence">
-                    <input type="hidden" name="ocr_extracted" x-bind:value="ocrResult">
                 </div>
 
                 <hr class="border-gray-200 dark:border-gray-700" x-show="step === 2" x-cloak>
@@ -591,12 +594,18 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                 <div><span class="text-gray-600 dark:text-gray-400" x-text="t('id_type')"></span><p class="font-medium capitalize" x-text="idType ? idType.replace(/_/g, ' ') : '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('id_number')"></span><p class="font-medium" x-text="idNumber || '-'"></p></div>
                                 <div>
-                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan')"></span>
+                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_front')"></span>
                                     <p class="font-medium">
-                                        <span x-show="idScanPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
-                                        <span x-show="!idScanPreview" x-text="t('not_uploaded')"></span>
+                                        <span x-show="idScanFrontPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                        <span x-show="!idScanFrontPreview" x-text="t('not_uploaded')"></span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_back')"></span>
+                                    <p class="font-medium">
+                                        <span x-show="idScanBackPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                        <span x-show="!idScanBackPreview" x-text="t('not_uploaded')"></span>
                                     </p>
                                 </div>
                                 <template x-if="personStatus !== ''">
@@ -662,10 +671,6 @@
     </div>
 </div>
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-@endpush
-
 <script>
     function registrationForm(translations) {
         return {
@@ -704,7 +709,7 @@
             building_no: '{{ old("building_no") }}',
             unit_no: '{{ old("unit_no") }}',
             street: '{{ old("street") }}',
-            road: '{{ old("road", "MOLINO ROAD") }}',
+            road: '{{ old("road") }}',
             barangay: '{{ old("barangay", "MOLINO I") }}',
             subdivision: '{{ old("subdivision") }}',
             purok: '{{ old("purok") }}',
@@ -714,19 +719,15 @@
             email: '{{ old("email") }}',
 
             idType: '{{ old("id_type") }}',
-            idNumber: '{{ old("id_number") }}',
-            idFormatHint: '',
-            idFormatError: '',
 
-            ocrProcessing: false,
-            ocrResult: '',
-            ocrError: '',
-            ocrConfidence: 0,
-
-            idScanPreview: '',
-            idScanSource: 'upload',
-            idScanSelected: false,
-            idScanNeedsReupload: false,
+            idScanFrontPreview: '',
+            idScanFrontSource: 'upload',
+            idScanFrontSelected: false,
+            idScanFrontNeedsReupload: false,
+            idScanBackPreview: '',
+            idScanBackSource: 'upload',
+            idScanBackSelected: false,
+            idScanBackNeedsReupload: false,
             statusPhotoPreview: '',
             statusPhotoSource: 'upload',
 
@@ -749,26 +750,9 @@
                 barangay: 1, subdivision: 1, purok: 1,
                 contact_number: 1, emergency_contact: 1, email: 1,
                 city: 1, province: 1,
-                id_type: 2, id_number: 2, id_scan: 2,
-                ocr_confidence: 2, ocr_extracted: 2,
+                id_type: 2, id_scan_front: 2, id_scan_back: 2,
                 document_type_id: 3, purpose_id: 3, purpose_other: 3,
                 privacy_consent: 3, is_pregnant: 3,
-            },
-
-            idFormats: {
-                phil_id: { pattern: /^\d{4}-\d{4}-\d{4}-\d{4}$/, hint: '1234-5678-9012-3456' },
-                passport: { pattern: /^[A-Z]\d{7}[A-Z]$|^[A-Z]{2}\d{7}$/, hint: 'P1234567A or AA1234567' },
-                umid: { pattern: /^\d{4}-\d{7}-\d$/, hint: '0033-1234567-8' },
-                philhealth: { pattern: /^\d{2}-\d{9}-\d$/, hint: '11-201534404-7' },
-                drivers_license: { pattern: /^[A-Z]\d{2}-\d{2}-\d{6}$/, hint: 'D01-12-345678' },
-                prc_id: { pattern: /^\d{7}$/, hint: '0123456' },
-                postal_id: { pattern: /^\d{4}-\d{4}-\d{4}$/, hint: '1234-5678-9012' },
-                sss_id: { pattern: /^\d{2}-\d{7}-\d$/, hint: '34-1234567-8' },
-                tin_id: { pattern: /^\d{3}-\d{3}-\d{3}-\d{3,4}$/, hint: '123-456-789-000' },
-                ibp_id: { pattern: /^\d{5}$/, hint: '12345' },
-                owwa_ofw_id: { pattern: /^\d{10}$/, hint: '1234567890' },
-                barangay_id: { pattern: null, hint: null },
-                school_id: { pattern: null, hint: null },
             },
 
             get computedAge() {
@@ -787,10 +771,10 @@
                 if (this.unit_no) parts.push('UNIT ' + this.unit_no);
                 if (this.street) parts.push(this.street);
                 if (this.road) parts.push(this.road);
-                if (this.barangay) parts.push(this.barangay);
                 if (this.subdivision) parts.push(this.subdivision);
+                if (this.barangay) parts.push(this.barangay);
                 if (this.purok) parts.push(this.purok);
-                parts.push('BACOOR CITY, CAVITE');
+                parts.push('BACOOR CITY, CAVITE 4102');
                 return parts.join(', ');
             },
 
@@ -866,30 +850,28 @@
                 el.value = formatted;
             },
 
-            selectIdPhoto(source) {
-                this.idScanSource = source;
-                const input = document.getElementById('id_scan');
+            selectIdPhoto(side, source) {
+                const key = 'idScan' + (side === 'back' ? 'Back' : 'Front');
+                this[key + 'Source'] = source;
+                const input = document.getElementById('id_scan_' + side);
                 if (input) {
                     input.removeAttribute('capture');
                     if (source === 'camera') input.setAttribute('capture', 'environment');
                     input.value = '';
-                    this.idScanPreview = '';
-                    this.idScanSelected = false;
+                    this[key + 'Preview'] = '';
+                    this[key + 'Selected'] = false;
                     input.click();
                 }
             },
 
-            onIdScanChange(event) {
+            onIdScanChange(side, event) {
                 const file = event.target.files[0];
-                this.idScanPreview = file ? URL.createObjectURL(file) : '';
-                this.ocrError = '';
-                this.ocrResult = '';
-                this.ocrConfidence = 0;
-                this.idScanSelected = !!file;
-                this.idScanNeedsReupload = false;
-                if (file) {
-                    this.processOcr(event);
-                }
+                const key = 'idScan' + (side === 'back' ? 'Back' : 'Front');
+                this[key + 'Preview'] = file ? URL.createObjectURL(file) : '';
+                this[key + 'Selected'] = !!file;
+                this[key + 'NeedsReupload'] = false;
+                this.errors['id_scan_' + side] = '';
+                this.saveDraft();
             },
 
             selectStatusPhoto(source) {
@@ -911,100 +893,6 @@
                 this.errors.status_verification_photo = '';
             },
 
-            async processOcr(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                if (!this.idType) {
-                    this.ocrError = this.t('select_id_type_first') || 'Please select an ID type first.';
-                    event.target.value = '';
-                    return;
-                }
-
-                this.ocrProcessing = true;
-                this.ocrResult = '';
-                this.ocrError = '';
-                this.ocrConfidence = 0;
-
-                try {
-                    const img = new Image();
-                    const reader = new FileReader();
-                    const imgLoad = new Promise((resolve) => { img.onload = resolve; });
-
-                    reader.readAsDataURL(file);
-                    await new Promise((resolve) => { reader.onload = resolve; });
-                    img.src = reader.result;
-                    await imgLoad;
-
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxDim = 2048;
-                    let w = img.width, h = img.height;
-                    if (w > maxDim || h > maxDim) {
-                        const scale = Math.min(maxDim / w, maxDim / h);
-                        w *= scale; h *= scale;
-                    }
-                    canvas.width = w;
-                    canvas.height = h;
-                    ctx.drawImage(img, 0, 0, w, h);
-
-                    const result = await Tesseract.recognize(canvas, 'eng', {
-                        logger: () => {}
-                    });
-
-                    const text = result.data.text.toUpperCase();
-                    const words = result.data.words || [];
-                    const avgConfidence = words.length > 0
-                        ? words.reduce((sum, w) => sum + w.confidence, 0) / words.length
-                        : result.data.confidence || 0;
-
-                    this.ocrConfidence = Math.round(avgConfidence);
-
-                    if (avgConfidence < 30) {
-                        this.ocrError = '{{ __("ID image not detected or unreadable. Please retake or re-upload a clearer image.") }}';
-                        this.ocrProcessing = false;
-                        return;
-                    }
-
-                    const fmt = this.idFormats[this.idType];
-                    let extracted = '';
-
-                    if (fmt && fmt.pattern) {
-                        const lines = text.split('\n');
-                        for (const line of lines) {
-                            const clean = line.replace(/\s+/g, '');
-                            const trimmed = clean.trim();
-                            if (fmt.pattern.test(trimmed)) {
-                                extracted = trimmed;
-                                break;
-                            }
-                            const spaceRelaxed = line.replace(/\s+/g, '').trim();
-                            if (fmt.pattern.test(spaceRelaxed)) {
-                                extracted = spaceRelaxed;
-                                break;
-                            }
-                        }
-                    } else {
-                        const lines = text.split('\n').filter(l => l.trim().length > 3);
-                        if (lines.length > 0) {
-                            extracted = lines[0].trim().replace(/\s+/g, '');
-                        }
-                    }
-
-                    if (extracted && (!fmt || !fmt.pattern || fmt.pattern.test(extracted))) {
-                        this.ocrResult = extracted;
-                        this.idNumber = extracted;
-                        this.validateIdFormat();
-                    } else {
-                        this.ocrError = '{{ __("ID image not detected or unreadable. Please retake or re-upload a clearer image.") }}';
-                    }
-                } catch (e) {
-                    this.ocrError = '{{ __("OCR processing failed. Please try again.") }}';
-                } finally {
-                    this.ocrProcessing = false;
-                }
-            },
-
             validateStep() {
                 let valid = true;
                 const errors = {};
@@ -1020,9 +908,8 @@
                     if (!this.place_of_birth) { valid = false; errors.place_of_birth = this.t('place_of_birth_required') || 'Place of birth is required.'; if (!firstErrorField) firstErrorField = 'place_of_birth'; }
                 } else if (this.step === 2) {
                     if (!this.idType) { valid = false; errors.id_type = this.t('id_type_required') || 'Please select an ID type.'; if (!firstErrorField) firstErrorField = 'id_type'; }
-                    if (!this.idNumber) { valid = false; errors.id_number = this.t('id_number_required') || 'Please enter your ID number.'; if (!firstErrorField) firstErrorField = 'id_number'; }
-                    if (!this.idScanSelected) { valid = false; errors.id_scan = this.t('id_scan_required') || 'Please scan or upload your government ID.'; if (!firstErrorField) firstErrorField = 'id-scan-section'; }
-                    if (this.ocrError) { valid = false; errors.id_scan = this.ocrError; if (!firstErrorField) firstErrorField = 'id-scan-section'; }
+                    if (!this.idScanFrontSelected) { valid = false; errors.id_scan_front = this.t('id_scan_front_required') || 'Please scan or upload the front of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_front'; }
+                    if (!this.idScanBackSelected) { valid = false; errors.id_scan_back = this.t('id_scan_back_required') || 'Please scan or upload the back of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_back'; }
                 } else if (this.step === 3) {
                     if (!this.documentTypeId) { valid = false; errors.document_type_id = this.t('select_document') || 'Please select a document.'; if (!firstErrorField) firstErrorField = 'document_type_id'; }
                     if (!this.purposeId) { valid = false; errors.purpose_id = this.t('select_purpose') || 'Please select a purpose.'; if (!firstErrorField) firstErrorField = 'purpose_id'; }
@@ -1078,11 +965,8 @@
                     emergencyContact: this.emergencyContact,
                     email: this.email,
                     idType: this.idType,
-                    idNumber: this.idNumber,
-                    ocrResult: this.ocrResult,
-                    ocrConfidence: this.ocrConfidence,
-                    idScanSource: this.idScanSource,
-                    idScanSelected: this.idScanSelected,
+                    idScanFrontSelected: this.idScanFrontSelected,
+                    idScanBackSelected: this.idScanBackSelected,
                     documentTypeId: this.documentTypeId,
                     purposeId: this.purposeId,
                     purposeOther: this.purposeOther,
@@ -1104,12 +988,13 @@
                         if (this.step < 1 || this.step > this.totalSteps) {
                             this.step = 1;
                         }
-                        if (this.idType) {
-                            this.updateIdFormatHint();
+                        if (data.idScanFrontSelected) {
+                            this.idScanFrontNeedsReupload = true;
+                            this.idScanFrontSelected = false;
                         }
-                        if (data.idScanSelected) {
-                            this.idScanNeedsReupload = true;
-                            this.idScanSelected = false;
+                        if (data.idScanBackSelected) {
+                            this.idScanBackNeedsReupload = true;
+                            this.idScanBackSelected = false;
                         }
                         this.draftRestored = true;
                     } catch (e) {}
@@ -1137,7 +1022,7 @@
                     this.building_no = '';
                     this.unit_no = '';
                     this.street = '';
-                    this.road = 'MOLINO ROAD';
+                    this.road = '';
                     this.barangay = 'MOLINO I';
                     this.subdivision = '';
                     this.purok = '';
@@ -1145,16 +1030,14 @@
                     this.emergencyContact = '';
                     this.email = '';
                     this.idType = '';
-                    this.idNumber = '';
-                    this.idFormatHint = '';
-                    this.idFormatError = '';
-                    this.ocrResult = '';
-                    this.ocrError = '';
-                    this.ocrConfidence = 0;
-                    this.idScanPreview = '';
-                    this.idScanSource = 'upload';
-                    this.idScanSelected = false;
-                    this.idScanNeedsReupload = false;
+                    this.idScanFrontPreview = '';
+                    this.idScanFrontSource = 'upload';
+                    this.idScanFrontSelected = false;
+                    this.idScanFrontNeedsReupload = false;
+                    this.idScanBackPreview = '';
+                    this.idScanBackSource = 'upload';
+                    this.idScanBackSelected = false;
+                    this.idScanBackNeedsReupload = false;
                     this.statusPhotoPreview = '';
                     this.statusPhotoSource = 'upload';
                     this.documentTypeId = '';
@@ -1189,10 +1072,6 @@
                 this.errors = {};
 
                 const formData = new FormData(form);
-
-                if (!this.idNumber && this.ocrResult) {
-                    formData.set('id_number', this.ocrResult);
-                }
 
                 try {
                     const response = await fetch('{{ route('register') }}', {
@@ -1266,37 +1145,16 @@
                 }
             },
 
-            updateIdFormatHint() {
-                const fmt = this.idFormats[this.idType];
-                this.idFormatHint = fmt ? fmt.hint : null;
-                this.idFormatError = '';
-            },
-
             onIdTypeChange() {
-                this.updateIdFormatHint();
-                this.ocrResult = '';
-                this.ocrError = '';
-                this.ocrConfidence = 0;
-                this.idScanPreview = '';
-                this.idScanSelected = false;
-                this.idScanNeedsReupload = false;
-                this.errors.id_scan = '';
-                this.validateIdFormat();
+                this.idScanFrontPreview = '';
+                this.idScanFrontSelected = false;
+                this.idScanFrontNeedsReupload = false;
+                this.idScanBackPreview = '';
+                this.idScanBackSelected = false;
+                this.idScanBackNeedsReupload = false;
+                this.errors.id_scan_front = '';
+                this.errors.id_scan_back = '';
                 this.saveDraft();
-            },
-
-            validateIdFormat() {
-                if (!this.idType || !this.idNumber) {
-                    this.idFormatError = '';
-                    return;
-                }
-                const fmt = this.idFormats[this.idType];
-                if (fmt && fmt.pattern) {
-                    const valid = fmt.pattern.test(this.idNumber.toUpperCase().trim());
-                    this.idFormatError = valid ? '' : this.t('id_format_error');
-                } else {
-                    this.idFormatError = '';
-                }
             },
         };
     }

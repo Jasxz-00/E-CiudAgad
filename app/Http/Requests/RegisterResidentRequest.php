@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\ValidateGovernmentID;
-use App\Services\IdValidationService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -53,34 +51,17 @@ class RegisterResidentRequest extends FormRequest
             'person_status' => ['nullable', 'string', 'in:pwd,senior,pregnant'],
             'status_verification_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'id_type' => ['required', 'string', 'max:50'],
-            'id_number' => [
-                'required',
-                'string',
-                'max:100',
-                function ($attribute, $value, $fail) {
-                    $idType = $this->id_type;
-                    $service = app(IdValidationService::class);
-                    if (! $service->validate($idType, $value)) {
-                        $patternDesc = $service->getPatternDescription($idType);
-                        $msg = __('registration.id_format_error');
-                        if ($patternDesc) {
-                            $msg .= ' '.__('Expected format').': '.$patternDesc;
-                        }
-                        $fail($msg);
-                    }
-                },
-            ],
-            'id_scan' => [
+            'id_scan_front' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png',
                 'max:5120',
-                new ValidateGovernmentID(
-                    idType: $this->input('id_type', ''),
-                    firstName: $this->input('first_name', ''),
-                    lastName: $this->input('last_name', ''),
-                    addressText: $this->getAddressText(),
-                ),
+            ],
+            'id_scan_back' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png',
+                'max:5120',
             ],
             'document_type_id' => ['required', 'exists:document_types,id'],
             'purpose_id' => ['required', 'exists:request_purposes,id'],
@@ -119,9 +100,12 @@ class RegisterResidentRequest extends FormRequest
             'emergency_contact.regex' => __('Emergency contact must be in format 09XX-XXX-XXXX.'),
             'emergency_contact.required' => __('Please enter an emergency contact number.'),
             'privacy_consent.accepted' => __('You must accept the data privacy consent to proceed.'),
-            'id_scan.required' => __('Please upload a clear image of your government ID.'),
-            'id_scan.mimes' => __('ID scan must be a JPG, JPEG, or PNG image.'),
-            'id_scan.max' => __('ID scan must not exceed 5MB.'),
+            'id_scan_front.required' => __('Please upload a clear image of the FRONT side of your government ID.'),
+            'id_scan_front.mimes' => __('ID front must be a JPG, JPEG, or PNG image.'),
+            'id_scan_front.max' => __('ID front must not exceed 5MB.'),
+            'id_scan_back.required' => __('Please upload a clear image of the BACK side of your government ID.'),
+            'id_scan_back.mimes' => __('ID back must be a JPG, JPEG, or PNG image.'),
+            'id_scan_back.max' => __('ID back must not exceed 5MB.'),
             'gender.required' => __('Please select your sex.'),
             'document_type_id.required' => __('Please select a document type.'),
             'purpose_id.required' => __('Please select a purpose.'),
@@ -134,25 +118,6 @@ class RegisterResidentRequest extends FormRequest
             'staff_badge.required' => __('Staff badge number is required for assisted registration.'),
             'status_verification_photo.required' => __('A verification photo is required for your selected priority category.'),
         ];
-    }
-
-    protected function getAddressText(): ?string
-    {
-        $parts = [];
-        if ($this->filled('street')) {
-            $parts[] = $this->input('street');
-        }
-        if ($this->filled('barangay')) {
-            $parts[] = $this->input('barangay');
-        }
-        if ($this->filled('city')) {
-            $parts[] = $this->input('city');
-        }
-        if ($this->filled('province')) {
-            $parts[] = $this->input('province');
-        }
-
-        return ! empty($parts) ? implode(', ', $parts) : null;
     }
 
     protected function prepareForValidation(): void
@@ -180,9 +145,6 @@ class RegisterResidentRequest extends FormRequest
         }
         if ($this->has('unit_no')) {
             $this->merge(['unit_no' => $this->unit_no ? strtoupper(trim($this->unit_no)) : null]);
-        }
-        if ($this->has('id_number')) {
-            $this->merge(['id_number' => strtoupper(trim($this->id_number))]);
         }
         if ($this->has('tracking_number')) {
             $this->merge(['tracking_number' => strtoupper(trim($this->tracking_number))]);
