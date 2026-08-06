@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RequestPurposeSeeder::class,
             WFQConfigurationSeeder::class,
             AdminUserSeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }

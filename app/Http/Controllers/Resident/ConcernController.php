@@ -13,6 +13,7 @@ class ConcernController extends Controller
     {
         $resident = Auth::user()->resident;
         $concerns = Concern::where('resident_id', $resident->id)
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'reviewing' THEN 1 ELSE 2 END")
             ->orderBy('created_at', 'desc')
             ->get();
 

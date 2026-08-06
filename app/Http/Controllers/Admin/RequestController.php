@@ -47,7 +47,11 @@ class RequestController extends Controller
             });
         }
 
-        $requests = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $requests = $query
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'reviewing' THEN 1 WHEN 'approved' THEN 2 WHEN 'completed' THEN 3 WHEN 'released' THEN 4 ELSE 5 END")
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         $documentTypes = DocumentType::where('is_active', true)->orderBy('name')->get();
         $purposes = RequestPurpose::where('is_active', true)->orderBy('name')->get();

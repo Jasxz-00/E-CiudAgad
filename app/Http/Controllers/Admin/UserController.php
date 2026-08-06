@@ -41,7 +41,11 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $users = $query
+            ->orderByRaw("CASE role WHEN 'admin' THEN 0 WHEN 'personnel' THEN 1 ELSE 2 END")
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }

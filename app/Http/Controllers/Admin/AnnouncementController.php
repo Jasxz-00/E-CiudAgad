@@ -11,7 +11,8 @@ class AnnouncementController extends Controller
     public function index()
     {
         $announcements = Announcement::with('createdBy')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('is_published', 'desc')
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
             ->paginate(15);
 
         return view('admin.announcements.index', compact('announcements'));

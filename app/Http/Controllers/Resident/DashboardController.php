@@ -32,6 +32,7 @@ class DashboardController extends Controller
         $resident = Auth::user()->resident;
         $recentRequests = DocumentRequest::where('resident_id', $resident->id)
             ->with(['documentType', 'purpose'])
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'reviewing' THEN 1 WHEN 'approved' THEN 2 WHEN 'completed' THEN 3 WHEN 'released' THEN 4 ELSE 5 END")
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
@@ -70,6 +71,7 @@ class DashboardController extends Controller
         $resident = Auth::user()->resident;
         $requests = DocumentRequest::where('resident_id', $resident->id)
             ->with(['documentType', 'purpose'])
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'reviewing' THEN 1 WHEN 'approved' THEN 2 WHEN 'completed' THEN 3 WHEN 'released' THEN 4 ELSE 5 END")
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

@@ -68,8 +68,10 @@ class RequestController extends Controller
 
         $statsQuery = clone $query;
 
-        $requests = $query->orderBy('queue_position', 'asc')
-            ->orderBy('created_at', 'asc')
+        $requests = $query
+            ->orderByRaw("CASE WHEN status IN ('pending', 'reviewing') THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status IN ('pending', 'reviewing') THEN COALESCE(queue_position, 999999999) ELSE 999999999 END")
+            ->orderBy('created_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
