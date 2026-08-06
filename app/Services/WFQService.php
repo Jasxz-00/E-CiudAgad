@@ -7,6 +7,7 @@ use App\Models\DocumentType;
 use App\Models\RequestPurpose;
 use App\Models\Resident;
 use App\Models\WFQConfiguration;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 class WFQService
@@ -73,16 +74,20 @@ class WFQService
     public function generateQueueNumber(): string
     {
         $prefix = 'Q-';
-        $lastRequest = DocumentRequest::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
+        $maxSuffix = 0;
 
-        if ($lastRequest && preg_match('/-(\d+)$/', $lastRequest->queue_number, $matches)) {
-            $nextNumber = (int) $matches[1] + 1;
-        } else {
-            $nextNumber = 1;
+        foreach (DocumentRequest::pluck('queue_number') as $queueNumber) {
+            if (preg_match('/-(\d+)$/', $queueNumber, $matches)) {
+                $maxSuffix = max($maxSuffix, (int) $matches[1]);
+            }
         }
 
-        return $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($maxSuffix + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function isQueueNumberCollision(\Throwable $e): bool
+    {
+        return str_contains($e->getMessage(), 'document_requests_queue_number_unique')
+            || (str_contains($e->getMessage(), 'queue_number') && $e instanceof UniqueConstraintViolationException);
     }
 }

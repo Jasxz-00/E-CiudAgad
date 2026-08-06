@@ -14,6 +14,7 @@ use App\Services\AgeService;
 use App\Services\CredentialService;
 use App\Services\FileService;
 use App\Services\WFQService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -203,13 +204,7 @@ class RegisterController extends Controller
                 'file_size' => $request->file('id_scan')->getSize(),
             ]);
 
-            $documentRequest = $resident->documentRequests()->create([
-                'queue_number' => $this->wFQService->generateQueueNumber(),
-                'document_type_id' => $validated['document_type_id'],
-                'purpose_id' => $validated['purpose_id'],
-                'purpose_other' => $validated['purpose_other'] ?? null,
-                'status' => 'pending',
-            ]);
+            $documentRequest = $this->createDocumentRequest($resident, $validated);
 
             $this->wFQService->enqueue($documentRequest);
 
@@ -306,6 +301,25 @@ class RegisterController extends Controller
                 return response()->json(['error' => 'Registration failed. Please try again.'], 500);
             }
             throw $e;
+        }
+    }
+
+    protected function createDocumentRequest(Resident $resident, array $validated)
+    {
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            try {
+                return $resident->documentRequests()->create([
+                    'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'document_type_id' => $validated['document_type_id'],
+                    'purpose_id' => $validated['purpose_id'],
+                    'purpose_other' => $validated['purpose_other'] ?? null,
+                    'status' => 'pending',
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt === 3 || ! $this->wFQService->isQueueNumberCollision($e)) {
+                    throw $e;
+                }
+            }
         }
     }
 
