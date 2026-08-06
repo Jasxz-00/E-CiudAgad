@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Flow Diagrams — E-Bilis Barangay Document System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container { max-width: 1100px; width: 100%; }
+  .figure {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 48px 40px 40px;
+    margin-bottom: 48px;
+  }
+  .figure-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .figure-caption {
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .flowchart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    min-height: 70px;
+  }
+  .node {
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border: 2.5px solid;
+    position: relative;
+    z-index: 1;
+    min-width: 120px;
+    line-height: 1.4;
+  }
+  .node-diamond {
+    width: 180px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    line-height: 1.4;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    padding: 20px;
+  }
+  .node-diamond span {
+    display: block;
+    max-width: 130px;
+  }
+  .node-start {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    min-width: unset;
+  }
+  .arrow-down, .arrow-right, .arrow-left {
+    position: relative;
+    z-index: 0;
+  }
+  .arrow-down::after {
+    content: '';
+    display: block;
+    width: 2.5px;
+    height: 36px;
+    margin: 0 auto;
+  }
+  .arrow-down::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    margin: 0 auto;
+    position: relative;
+    top: 0;
+  }
+  .arrow-right::after {
+    content: '';
+    display: inline-block;
+    width: 80px;
+    height: 2.5px;
+    vertical-align: middle;
+    position: relative;
+  }
+  .arrow-right::before {
+    content: '';
+    display: inline-block;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    vertical-align: middle;
+    position: relative;
+  }
+  .arrow-left::after {
+    content: '';
+    display: inline-block;
+    width: 80px;
+    height: 2.5px;
+    vertical-align: middle;
+    position: relative;
+  }
+  .arrow-left::before {
+    content: '';
+    display: inline-block;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    vertical-align: middle;
+    position: relative;
+  }
+  .branch-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 120px;
+    position: relative;
+  }
+  .branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .label-branch {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 12px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+  }
+  .fork-line {
+    width: 2.5px;
+    height: 20px;
+  }
+  .fork-horizontal {
+    height: 2.5px;
+    width: 200px;
+    position: absolute;
+    top: 0;
+  }
+
+  /* Color classes */
+  .gray { background: #e8e8ec; border-color: #999; color: #333; }
+  .gray-diamond { background: #e8e8ec; color: #333; }
+  .purple { background: #e8d5f5; border-color: #9b59b6; color: #2d1b4e; }
+  .green { background: #d4efdf; border-color: #27ae60; color: #1a3b2a; }
+  .orange { background: #fdebd0; border-color: #e67e22; color: #6e3500; }
+  .orange-diamond { background: #fdebd0; color: #6e3500; }
+
+  .arrow-gray::after, .arrow-gray::before { border-color: #999; background: #999; }
+  .arrow-gray::after { background: #999; }
+  .arrow-gray::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+  .arrow-gray-h::after { background: #999; }
+  .arrow-gray-h::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: #999; border-right-color: #999; }
+  .arrow-purple::after, .arrow-purple::before { background: #9b59b6; }
+  .arrow-purple::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+  .arrow-purple-h::after { background: #9b59b6; }
+  .arrow-purple-h::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: #9b59b6; border-right-color: #9b59b6; }
+  .arrow-green::after, .arrow-green::before { background: #27ae60; }
+  .arrow-green::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+  .arrow-green-h::after { background: #27ae60; }
+  .arrow-green-h::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: #27ae60; border-right-color: #27ae60; }
+  .arrow-orange::after, .arrow-orange::before { background: #e67e22; }
+  .arrow-orange::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+  .arrow-orange-h::after { background: #e67e22; }
+  .arrow-orange-h::before { border-top-color: transparent; border-bottom-color: transparent; border-left-color: #e67e22; border-right-color: #e67e22; }
+
+  .dashed { border-style: dashed !important; }
+
+  .connector-down { height: 30px; width: 2.5px; }
+  .connector-right { height: 2.5px; width: 80px; }
+
+  .fork-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .fork-vertical-line {
+    width: 2.5px;
+    height: 25px;
+  }
+  .fork-h-line {
+    width: 100%;
+    height: 2.5px;
+    position: relative;
+    max-width: 420px;
+  }
+  .fork-h-line-inner {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  .fork-drop-line {
+    width: 2.5px;
+    height: 25px;
+    margin: 0 auto;
+  }
+  .fork-pair {
+    display: flex;
+    justify-content: center;
+    gap: 160px;
+    width: 100%;
+    padding-top: 25px;
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .legend-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid;
+  }
+
+  .notes {
+    margin-top: 20px;
+    padding: 20px 24px;
+    background: #f0f4f8;
+    border-radius: 12px;
+    border-left: 4px solid #e67e22;
+  }
+  .notes h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #6e3500;
+    margin-bottom: 8px;
+  }
+  .notes p, .notes li {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.7;
+  }
+  .notes ul { padding-left: 20px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Figure 1 -->
+  <div class="figure" id="figure1">
+    <h2 class="figure-title">Figure 1. Entry Point Decision Flow</h2>
+    <p class="figure-caption">
+      Two access paths for residents when opening the system. New residents register and receive credentials;
+      returning residents log in using their Tracking Number and PIN. Both paths converge at the Resident Dashboard.
+    </p>
+
+    <div class="flowchart">
+      <!-- Start -->
+      <div class="row">
+        <div class="node node-start gray">Start</div>
+      </div>
+      <div class="row arrow-down arrow-gray"></div>
+
+      <!-- Landing Page -->
+      <div class="row">
+        <div class="node gray">Landing Page</div>
+      </div>
+      <div class="row arrow-down arrow-gray"></div>
+
+      <!-- Fork -->
+      <div class="fork-container">
+        <div class="fork-vertical-line" style="background:#999"></div>
+        <div class="fork-h-line">
+          <div class="fork-h-line-inner">
+            <div class="fork-drop-line" style="background:#9b59b6"></div>
+            <div class="fork-drop-line" style="background:#27ae60"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fork-pair">
+        <div class="branch-col">
+          <div class="node purple">New Resident</div>
+          <div class="connector-down" style="background:#9b59b6"></div>
+          <div class="node purple">Register</div>
+        </div>
+        <div class="branch-col">
+          <div class="node green">Returning Resident</div>
+          <div class="connector-down" style="background:#27ae60"></div>
+          <div class="node green">Login<br/><span style="font-weight:400;font-size:12px;">Tracking # + PIN</span></div>
+        </div>
+      </div>
+
+      <!-- Converge -->
+      <div class="fork-container">
+        <div class="fork-pair" style="padding-top:0;gap:0;position:relative;">
+          <div class="fork-drop-line" style="background:#9b59b6;width:50%;margin:0;position:absolute;left:25%;"></div>
+          <div class="fork-drop-line" style="background:#27ae60;width:50%;margin:0;position:absolute;right:25%;"></div>
+        </div>
+        <div class="fork-vertical-line" style="background:#666;width:2.5px;margin:0 auto;position:relative;"></div>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="row" style="margin-top:10px">
+        <div class="node gray">Resident Dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Figure 2 -->
+  <div class="figure" id="figure2">
+    <h2 class="figure-title">Figure 2. Registration with Duplicate Account Detection</h2>
+    <p class="figure-caption">
+      Registration flow incorporating duplicate account prevention. The system matches against First Name, Last Name,
+      and Date of Birth. Duplicates trigger a verification process that may involve Barangay Staff review.
+    </p>
+
+    <div class="flowchart">
+      <!-- Start -->
+      <div class="row">
+        <div class="node node-start gray">Start</div>
+      </div>
+      <div class="row arrow-down arrow-gray"></div>
+
+      <!-- Registration Form -->
+      <div class="row">
+        <div class="node purple">Registration Form</div>
+      </div>
+      <div class="row arrow-down arrow-purple"></div>
+
+      <!-- Duplicate Check Diamond -->
+      <div class="row">
+        <div class="node-diamond orange">
+          <span>Duplicate Account Check</span>
+        </div>
+      </div>
+
+      <!-- Fork from diamond: No Match left, Match Found right -->
+      <div class="fork-container">
+        <div class="fork-vertical-line" style="background:#e67e22"></div>
+        <div class="fork-h-line">
+          <div class="fork-h-line-inner">
+            <div class="fork-drop-line" style="background:#27ae60"></div>
+            <div class="fork-drop-line" style="background:#e67e22"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fork-pair">
+        <!-- No Match branch -->
+        <div class="branch-col">
+          <div class="label-branch green" style="background:#d4efdf;color:#1a3b2a;border:1.5px solid #27ae60;">No Match</div>
+          <div class="connector-down" style="background:#27ae60"></div>
+          <div class="node purple">Create Resident Account</div>
+          <div class="connector-down" style="background:#9b59b6"></div>
+          <div class="node purple">Generate Tracking #<br/>Generate PIN</div>
+          <div class="connector-down" style="background:#9b59b6"></div>
+          <div class="node gray">Resident Dashboard</div>
+        </div>
+
+        <!-- Match Found branch -->
+        <div class="branch-col">
+          <div class="label-branch orange" style="background:#fdebd0;color:#6e3500;border:1.5px solid #e67e22;">Match Found</div>
+          <div class="connector-down" style="background:#e67e22"></div>
+          <div class="node orange">"Account already<br/>exists" message</div>
+          <div class="connector-down" style="background:#e67e22"></div>
+          <div class="node green" style="font-size:12px;padding:10px 16px;">
+            Resident Options:<br/>
+            &bull; Login with Tracking # + PIN<br/>
+            &bull; Recover Account<br/>
+            &bull; Contact Staff
+          </div>
+          <div class="connector-down dashed" style="background:#e67e22;border-left:2.5px dashed #e67e22;height:30px;"></div>
+          <div class="node orange dashed" style="font-size:12px;padding:10px 16px;border-style:dashed;">
+            Resident insists<br/>no account exists
+          </div>
+          <div class="connector-down" style="background:#e67e22"></div>
+          <div class="node orange">Barangay Staff<br/>Verification</div>
+          <div class="connector-down" style="background:#e67e22"></div>
+          <div class="node orange" style="font-size:12px;padding:10px 16px;">
+            Staff reviews:<br/>
+            &bull; Existing resident info<br/>
+            &bull; Encoding errors<br/>
+            &bull; Identity verification
+          </div>
+          <div class="connector-down" style="background:#e67e22"></div>
+
+          <!-- Decision diamond -->
+          <div class="node-diamond orange" style="width:160px;height:90px;">
+            <span>Duplicate Confirmed?</span>
+          </div>
+
+          <div class="fork-container">
+            <div class="fork-vertical-line" style="background:#e67e22"></div>
+            <div class="fork-h-line">
+              <div class="fork-h-line-inner">
+                <div class="fork-drop-line" style="background:#27ae60"></div>
+                <div class="fork-drop-line" style="background:#9b59b6"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fork-pair" style="gap:100px;">
+            <div class="branch-col">
+              <div class="label-branch green" style="background:#d4efdf;color:#1a3b2a;border:1.5px solid #27ae60;">Yes</div>
+              <div class="connector-down" style="background:#27ae60"></div>
+              <div class="node green">Redirect to Login</div>
+              <div class="connector-down" style="background:#27ae60"></div>
+            </div>
+            <div class="branch-col">
+              <div class="label-branch purple" style="background:#e8d5f5;color:#2d1b4e;border:1.5px solid #9b59b6;">No</div>
+              <div class="connector-down" style="background:#9b59b6"></div>
+              <div class="node purple">Create Account</div>
+              <div class="connector-down" style="background:#9b59b6"></div>
+              <div class="node purple">Generate Tracking #<br/>Generate PIN</div>
+              <div class="connector-down" style="background:#9b59b6"></div>
+            </div>
+          </div>
+
+          <!-- Converge to Dashboard -->
+          <div class="fork-container">
+            <div class="fork-h-line" style="margin-top:0;max-width:300px;">
+              <div class="fork-h-line-inner">
+                <div class="fork-drop-line" style="background:#27ae60;width:50%;margin:0;position:absolute;left:25%;"></div>
+                <div class="fork-drop-line" style="background:#9b59b6;width:50%;margin:0;position:absolute;right:25%;"></div>
+              </div>
+            </div>
+            <div class="fork-vertical-line" style="background:#666"></div>
+          </div>
+          <div class="row" style="margin-top:5px">
+            <div class="node gray">Resident Dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4>Validator Considerations</h4>
+      <ol>
+        <li><strong>Primary matching:</strong> First Name, Last Name, and Date of Birth. Barangay/Purok may be added as a tie-breaker to reduce false matches.</li>
+        <li><strong>Staff override:</strong> If a duplicate is detected but the resident insists they have no account, Barangay Staff can verify identity, correct encoding errors, or approve a new registration if the records do not actually belong to the same person.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#e8d5f5;border-color:#9b59b6;"></div> Registration Processes</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#d4efdf;border-color:#27ae60;"></div> Login / Existing Account</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#fdebd0;border-color:#e67e22;"></div> Duplicate Check / Decision</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e8e8ec;border-color:#999;"></div> Start, End, Dashboard</div>
+  </div>
+</div>
+</body>
+</html>

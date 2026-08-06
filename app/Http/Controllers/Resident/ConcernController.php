@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Http\Controllers\Resident;
+
+use App\Http\Controllers\Controller;
+use App\Models\Concern;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ConcernController extends Controller
+{
+    public function index()
+    {
+        $resident = Auth::user()->resident;
+        $concerns = Concern::where('resident_id', $resident->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('resident.concerns', compact('concerns'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $resident = Auth::user()->resident;
+
+        Concern::create([
+            'resident_id' => $resident->id,
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('resident.concerns')
+            ->with('success', 'Your concern has been submitted successfully.');
+    }
+
+    public function show($id)
+    {
+        $resident = Auth::user()->resident;
+        $concern = Concern::where('resident_id', $resident->id)
+            ->findOrFail($id);
+
+        return view('resident.concerns-show', compact('concern'));
+    }
+}
