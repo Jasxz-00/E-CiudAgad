@@ -21,6 +21,12 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production') && ! filter_var(env('SEED_DEMO_DATA'), FILTER_VALIDATE_BOOLEAN)) {
+            $this->command->warn('DemoDataSeeder skipped: production environment.');
+
+            return;
+        }
+
         $credentials = new CredentialService;
         $wfq = new WFQService;
 

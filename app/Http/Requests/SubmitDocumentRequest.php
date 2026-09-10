@@ -16,7 +16,7 @@ class SubmitDocumentRequest extends FormRequest
     {
         return [
             'document_type_id' => ['required', 'exists:document_types,id'],
-            'purpose_id' => ['required', 'exists:request_purposes,id'],
+            'purpose_id' => ['nullable', 'exists:request_purposes,id'],
             'purpose_other' => ['nullable', 'string', 'max:255'],
         ];
     }

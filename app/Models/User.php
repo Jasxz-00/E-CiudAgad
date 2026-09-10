@@ -41,6 +41,21 @@ class User extends Authenticatable
         return $this->hasOne(Resident::class);
     }
 
+    public function documentRequests()
+    {
+        return $this->hasMany(DocumentRequest::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    public function concerns()
+    {
+        return $this->hasMany(Concern::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

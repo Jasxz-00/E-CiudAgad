@@ -12,8 +12,8 @@ class AuditLog extends Model
     protected $fillable = [
         'user_id',
         'action',
-        'auditable_type',
-        'auditable_id',
+        'subject_type',
+        'subject_id',
         'description',
         'old_values',
         'new_values',
@@ -26,7 +26,7 @@ class AuditLog extends Model
         return [
             'old_values' => 'json',
             'new_values' => 'json',
-            'auditable_id' => 'integer',
+            'subject_id' => 'integer',
         ];
     }
 
@@ -35,7 +35,7 @@ class AuditLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function auditable()
+    public function subject()
     {
         return $this->morphTo();
     }

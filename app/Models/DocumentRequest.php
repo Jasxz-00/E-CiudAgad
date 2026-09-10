@@ -10,7 +10,9 @@ class DocumentRequest extends Model
     use HasFactory;
 
     protected $fillable = [
+        'control_number',
         'queue_number',
+        'qr_code',
         'resident_id',
         'document_type_id',
         'purpose_id',
@@ -24,6 +26,8 @@ class DocumentRequest extends Model
         'processed_by',
         'processing_started_at',
         'completed_at',
+        'expires_at',
+        'processing_fee',
     ];
 
     protected function casts(): array
@@ -34,6 +38,8 @@ class DocumentRequest extends Model
             'queue_position' => 'integer',
             'processing_started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'processing_fee' => 'decimal:2',
         ];
     }
 
@@ -57,8 +63,23 @@ class DocumentRequest extends Model
         return $this->belongsTo(User::class, 'processed_by');
     }
 
+    public function issuedDocument()
+    {
+        return $this->hasOne(IssuedDocument::class);
+    }
+
+    public function idVerifications()
+    {
+        return $this->hasMany(IdVerification::class);
+    }
+
     public function documents()
     {
         return $this->hasMany(RequestDocument::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'subject');
     }
 }

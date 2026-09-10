@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
             RequestPurposeSeeder::class,
             WFQConfigurationSeeder::class,
             AdminUserSeeder::class,
-            DemoDataSeeder::class,
         ]);
+
+        if (! app()->environment('production') || filter_var(env('SEED_DEMO_DATA'), FILTER_VALIDATE_BOOLEAN)) {
+            $this->call(DemoDataSeeder::class);
+        }
     }
 }

@@ -51,36 +51,41 @@
                 </div>
             @endif
 
-            <div class="mb-12 max-w-xl mx-auto">
-                <div class="relative flex items-center justify-between w-full">
-                    <div class="absolute left-0 right-0 top-5 h-0.5 bg-gray-200 dark:bg-gray-700 z-0"></div>
-                    <div class="absolute left-0 top-5 h-0.5 bg-primary-700 transition-all duration-500 ease-in-out z-0"
-                        :style="`width: ${((step - 1) / (totalSteps - 1)) * 100}%`">
+            <div class="mb-10 max-w-xl mx-auto px-1">
+                <div class="relative grid grid-cols-3 gap-1 sm:gap-3">
+                    <div class="absolute top-5 left-[16.6667%] right-[16.6667%] h-0.5 bg-gray-200 dark:bg-gray-700 z-0"></div>
+                    <div class="absolute top-5 left-[16.6667%] h-0.5 bg-primary-700 transition-all duration-500 ease-in-out z-0"
+                        :style="`width: ${((step - 1) / (totalSteps - 1)) * 66.6667}%`">
                     </div>
                     <template x-for="s in totalSteps" :key="s">
-                        <div class="flex flex-col items-center relative z-10 cursor-pointer" @click="step = s">
-                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 font-bold text-sm transition-all duration-300 shadow-md"
+                        <div class="relative z-10 flex flex-col items-center cursor-pointer" @click="goToStep(s)" role="button" :aria-label="'Step ' + s" :aria-current="s === step ? 'step' : null">
+                            <div class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 font-bold text-sm sm:text-base transition-all duration-300 shadow-md"
                                 :class="{
-                                    'bg-primary-700 border-primary-600 text-white ring-4 ring-primary-500/20': step >= s,
-                                    'bg-gray-200 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400': step < s
-                                }"
-                                x-text="s">
+                                    'bg-primary-700 border-primary-600 text-white ring-4 ring-primary-500/20': s === step,
+                                    'bg-green-600 border-green-600 text-white': s < step,
+                                    'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400': s > step
+                                }">
+                                <template x-if="s < step">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </template>
+                                <template x-if="s >= step">
+                                    <span x-text="s"></span>
+                                </template>
                             </div>
-                            <span class="mt-3 text-xs font-semibold tracking-wide text-center block transition-colors duration-300"
-                                :class="step >= s ? 'text-primary-700 font-bold' : 'text-gray-600 dark:text-gray-400'">
+                            <span class="mt-2 w-full text-[11px] sm:text-xs font-semibold tracking-wide text-center leading-snug whitespace-normal transition-colors duration-300"
+                                :class="{
+                                    'text-primary-700 dark:text-primary-400 font-bold': s === step,
+                                    'text-green-700 dark:text-green-400': s < step,
+                                    'text-gray-600 dark:text-gray-400': s > step
+                                }">
                                 <span x-show="s === 1" x-text="t('personal_info_step')"></span>
                                 <span x-show="s === 2" x-text="t('identity_step')"></span>
                                 <span x-show="s === 3" x-text="t('document_step')"></span>
-                                <span x-show="s === 4" x-text="t('review_step')"></span>
                             </span>
                         </div>
                     </template>
                 </div>
             </div>
-
-            @if(session('draft_restored'))
-                <div class="mb-4 p-3 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 rounded-lg text-sm text-primary-700 dark:text-primary-400" x-text="t('draft_restored')"></div>
-            @endif
 
             <div x-cloak x-show="draftRestored" class="mb-4 p-3 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 rounded-lg text-sm text-primary-700 dark:text-primary-400" x-text="t('draft_restored')"></div>
 
@@ -272,6 +277,10 @@
                                     <img :src="statusPhotoPreview" alt="Verification photo preview" class="mt-3 max-h-40 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
                                 </template>
                             </div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" name="is_pregnant" id="is_pregnant" value="1" x-model="isPregnant" @@change="saveDraft()" class="w-4 h-4 rounded border-gray-200 dark:border-gray-700 text-primary-700">
+                            <label for="is_pregnant" class="text-sm text-gray-600 dark:text-gray-400" x-text="t('is_pregnant_label') || 'Currently pregnant'"></label>
                         </div>
                     </div>
 
@@ -491,16 +500,43 @@
                     </div>
                     </template>
 
-                    <div x-show="!idType" x-cloak class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-600 dark:text-gray-400">
+<div x-show="!idType" x-cloak class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-600 dark:text-gray-400">
                         <p class="flex items-center gap-2">
                             <svg class="w-5 h-5 shrink-0 text-primary-700 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span x-text="t('id_scan_pending_type')"></span>
                         </p>
                     </div>
+                    <div x-show="idType" x-cloak class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-700 text-white text-sm font-bold">2.2</span>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100" x-text="t('id_1x1_step')"></h3>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-3" x-text="t('id_1x1_step_hint')"></p>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" @@click="selectId1x1('camera')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                    :class="id1x1Source === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span x-text="t('take_photo') || 'Take Photo'"></span>
+                            </button>
+                            <button type="button" @@click="selectId1x1('upload')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                    :class="id1x1Source === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
+                                <span x-text="t('upload') || 'Upload'"></span>
+                            </button>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG (1x1)</p>
+                        <template x-if="id1x1Preview">
+                            <img :src="id1x1Preview" alt="1x1 ID preview" class="mt-3 max-h-32 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                        </template>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_1x1" x-text="errors.id_1x1"></p>
                     </div>
                 </div>
-
+                <input type="file" name="id_1x1" id="id_1x1_file" accept=".jpg,.jpeg,.png" class="hidden"
+                    @@change="onId1x1Change($event)">
                 <hr class="border-gray-200 dark:border-gray-700" x-show="step === 2" x-cloak>
+            </div>
 
                 <div x-show="step === 3" x-cloak>
                     <div class="flex items-center gap-3 mb-6">
@@ -511,151 +547,209 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="document_type_id" class="label"><span x-text="t('document_type')"></span> <span class="text-danger">*</span></label>
-                            <select id="document_type_id" name="document_type_id" class="select-field" required autocomplete="off" x-model="documentTypeId">
+                            <select id="document_type_id" name="document_type_id" class="select-field" required autocomplete="off" x-model="documentTypeId" @@change="onDocumentTypeChange()">
                                 <option value="" x-text="t('select_document')"></option>
-                                @foreach($documentTypes as $doc)
-                                    <option value="{{ $doc->id }}" {{ old('document_type_id') == $doc->id ? 'selected' : '' }}>
-                                        {{ $doc->name }} ({{ number_format((float) $doc->processing_fee, 2) }})
-                                    </option>
-                                @endforeach
+                                <option value="{{ $documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->id) ? 'selected' : '' }}>
+                                    {{ $documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->name ?? 'Certificate of Indigency' }}
+                                </option>
+                                <option value="{{ $documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->id) ? 'selected' : '' }}>
+                                    {{ $documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->name ?? 'Barangay Certificate' }}
+                                </option>
+                                <option value="{{ $documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->id) ? 'selected' : '' }}>
+                                    {{ $documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->name ?? 'Certificate of Residency' }}
+                                </option>
+                                <option value="{{ $documentTypes->firstWhere('code', 'BRGY_CLEARANCE')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'BRGY_CLEARANCE')?->id) ? 'selected' : '' }}>
+                                    {{ $documentTypes->firstWhere('code', 'BRGY_CLEARANCE')?->name ?? 'Barangay Clearance' }}
+                                </option>
                             </select>
                             @error('document_type_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.document_type_id" x-text="errors.document_type_id"></p>
                         </div>
-                        <div>
-                            <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
-                            <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId">
-                                <option value="" x-text="t('select_purpose')"></option>
-                                @foreach($requestPurposes as $purpose)
-                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }}>{{ $purpose->name }}</option>
-                                @endforeach
-                                @if($othersPurpose)
-                                    <option value="{{ $othersPurpose->id }}" {{ old('purpose_id') == $othersPurpose->id ? 'selected' : '' }} x-text="t('others')"></option>
-                                @endif
-                            </select>
-                            @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.purpose_id" x-text="errors.purpose_id"></p>
-                        </div>
                     </div>
 
-                    <div class="mt-4" id="other-purpose-container" x-show="purposeIsOthers" x-cloak>
-                        <x-input name="purpose_other" label="Specify Purpose" placeholder="Please specify your purpose" class="uppercase-input" x-model="purposeOther" />
+                    <div x-show="isCertificateOfIndigency()" x-cloak class="mt-4">
+                        <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
+                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
+                            <option value="" x-text="t('select_purpose')"></option>
+                            @foreach($purposes as $purpose)
+                                @if($purpose->code === 'MEDICAL_ASSISTANCE' || $purpose->code === 'FINANCIAL_ASSISTANCE')
+                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
+                                @endif
+                            @endforeach
+                        </select>
+                        @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                     </div>
-                    <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.purpose_other" x-text="errors.purpose_other"></p>
+
+                    <div x-show="isCertificateOfBarangayCert()" x-cloak class="mt-4">
+                        <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
+                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
+                            <option value="" x-text="t('select_purpose')"></option>
+                            @foreach($purposes as $purpose)
+                                @if($purpose->code === 'ENROLLMENT' || $purpose->code === 'SCHOLARSHIP' || $purpose->code === 'VOUCHER')
+                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
+                                @endif
+                            @endforeach
+                        </select>
+                        @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div x-show="isCertificateOfResidency()" x-cloak class="mt-4">
+                        <label for="purpose_other" class="label">{{ __('registration.purpose_other') }} <span class="text-danger">*</span></label>
+                        <input id="purpose_other" type="text" name="purpose_other" x-model="purposeOther" required
+                            class="input-field uppercase-input" placeholder="{{ __('registration.purpose_other_placeholder') }}" autocomplete="off"
+                            @@input.debounce.500ms="saveDraft()">
+                        @error('purpose_other') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div x-show="isBarangayClearance()" x-cloak class="mt-4">
+                        <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
+                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
+                            <option value="" x-text="t('select_purpose')"></option>
+                            @foreach($purposes as $purpose)
+                                @if(in_array($purpose->code, ['LOCAL_EMPLOYMENT', 'NBI_REQUIREMENT', 'POLICE_CLEARANCE', 'POSTAL_ID', 'BANK_LOAN', 'MARRIAGE']))
+                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
+                                @endif
+                            @endforeach
+                        </select>
+                        @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+                    </div>
 
                     <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
-                        <x-checkbox name="privacy_consent" label='I acknowledge that my personal information and uploaded documents will be encrypted, securely stored, and used solely for the purpose of processing my document request in compliance with the Data Privacy Act of 2012.' required :error="$errors->first('privacy_consent')" x-model="privacyConsent" />
+                        <x-checkbox name="privacy_consent" :label="__('registration.privacy_consent')" required :error="$errors->first('privacy_consent')" x-model="privacyConsent" />
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.privacy_consent" x-text="errors.privacy_consent"></p>
                     </div>
-                </div>
 
-                <div x-show="step === 4" x-cloak>
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-700 text-white text-sm font-bold">4</span>
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100" x-text="t('review_title')"></h2>
+                    <div class="mt-8 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-semibold text-sm" x-text="t('personal_info_step')"></h3>
+                            <button type="button" @@click="step = 1" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('name')"></span><p class="font-medium" x-text="fullName"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('sex')"></span><p class="font-medium capitalize" x-text="genderLabel"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('birthdate')"></span><p class="font-medium" x-text="birthdateLabel"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('civil_status')"></span><p class="font-medium capitalize" x-text="civilStatusLabel"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('nationality')"></span><p class="font-medium" x-text="nationality || '-'"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('religion')"></span><p class="font-medium" x-text="religion || '-'"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('place_of_birth')"></span><p class="font-medium" x-text="place_of_birth || '-'"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('person_status')"></span><p class="font-medium" x-text="personStatusLabel"></p></div>
+                        </div>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6" x-text="t('review_subtitle')"></p>
 
-                    <div class="space-y-4">
-                        <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <h3 class="font-semibold text-sm" x-text="t('personal_info_step')"></h3>
-                                <button type="button" @@click="step = 1" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('name')"></span><p class="font-medium" x-text="fullName"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('sex')"></span><p class="font-medium capitalize" x-text="genderLabel"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('birthdate')"></span><p class="font-medium" x-text="birthdateLabel"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('civil_status')"></span><p class="font-medium capitalize" x-text="civilStatusLabel"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('nationality')"></span><p class="font-medium" x-text="nationality || '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('religion')"></span><p class="font-medium" x-text="religion || '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('place_of_birth')"></span><p class="font-medium" x-text="place_of_birth || '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('person_status')"></span><p class="font-medium" x-text="personStatusLabel"></p></div>
-                            </div>
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-semibold text-sm" x-text="t('address')"></h3>
+                            <button type="button" @@click="step = 1" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
                         </div>
-
-                        <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <h3 class="font-semibold text-sm" x-text="t('address')"></h3>
-                                <button type="button" @@click="step = 1" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <div class="sm:col-span-2"><span class="text-gray-600 dark:text-gray-400" x-text="t('address')"></span><p class="font-medium" x-text="fullAddress"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('contact_number')"></span><p class="font-medium" x-text="contactNumber || '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('emergency_contact')"></span><p class="font-medium" x-text="emergencyContact || '-'"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('email_address')"></span><p class="font-medium" x-text="email || '-'"></p></div>
-                            </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <div class="sm:col-span-2"><span class="text-gray-600 dark:text-gray-400" x-text="t('address')"></span><p class="font-medium" x-text="fullAddress"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('contact_number')"></span><p class="font-medium" x-text="contactNumber || '-'"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('emergency_contact')"></span><p class="font-medium" x-text="emergencyContact || '-'"></p></div>
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('email_address')"></span><p class="font-medium" x-text="email || '-'"></p></div>
                         </div>
+                    </div>
 
-                        <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <h3 class="font-semibold text-sm" x-text="t('identity_step')"></h3>
-                                <button type="button" @@click="step = 2" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-semibold text-sm" x-text="t('identity_step')"></h3>
+                            <button type="button" @@click="step = 2" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <div><span class="text-gray-600 dark:text-gray-400" x-text="t('id_type')"></span><p class="font-medium capitalize" x-text="idType ? idType.replace(/_/g, ' ') : '-'"></p></div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_front')"></span>
+                                <p class="font-medium">
+                                    <span x-show="idScanFrontPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                    <span x-show="!idScanFrontPreview" x-text="t('not_uploaded')"></span>
+                                </p>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('id_type')"></span><p class="font-medium capitalize" x-text="idType ? idType.replace(/_/g, ' ') : '-'"></p></div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_back')"></span>
+                                <p class="font-medium">
+                                    <span x-show="idScanBackPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                    <span x-show="!idScanBackPreview" x-text="t('not_uploaded')"></span>
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('id_photo_1x1')"></span>
+                                <p class="font-medium">
+                                    <span x-show="id1x1Preview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                    <span x-show="!id1x1Preview" x-text="t('not_uploaded')"></span>
+                                </p>
+                            </div>
+                            <template x-if="personStatus !== ''">
                                 <div>
-                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_front')"></span>
+                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('upload_verification_photo')"></span>
                                     <p class="font-medium">
-                                        <span x-show="idScanFrontPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
-                                        <span x-show="!idScanFrontPreview" x-text="t('not_uploaded')"></span>
+                                        <span x-show="statusPhotoPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
+                                        <span x-show="!statusPhotoPreview" x-text="t('not_uploaded')"></span>
                                     </p>
                                 </div>
-                                <div>
-                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('id_scan_back')"></span>
-                                    <p class="font-medium">
-                                        <span x-show="idScanBackPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
-                                        <span x-show="!idScanBackPreview" x-text="t('not_uploaded')"></span>
-                                    </p>
-                                </div>
-                                <template x-if="personStatus !== ''">
-                                    <div>
-                                        <span class="text-gray-600 dark:text-gray-400" x-text="t('upload_verification_photo')"></span>
-                                        <p class="font-medium">
-                                            <span x-show="statusPhotoPreview" class="text-green-600 dark:text-green-400" x-text="t('uploaded')"></span>
-                                            <span x-show="!statusPhotoPreview" x-text="t('not_uploaded')"></span>
-                                        </p>
-                                    </div>
-                                </template>
-                            </div>
+                            </template>
                         </div>
+                    </div>
 
-                        <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <h3 class="font-semibold text-sm" x-text="t('document_step')"></h3>
-                                <button type="button" @@click="step = 3" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-semibold text-sm" x-text="t('document_type')"></h3>
+                            <button type="button" @@click="goToStep(3); scrollToField('document_type_id')" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('document_type')"></span>
+                                <p class="font-medium capitalize" x-text="documentTypeName || '-'"></p>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('document_type')"></span><p class="font-medium" x-text="documentTypeName"></p></div>
-                                <div><span class="text-gray-600 dark:text-gray-400" x-text="t('purpose')"></span><p class="font-medium" x-text="purposeName + (purposeIsOthers && purposeOther ? ': ' + purposeOther : '')"></p></div>
-                                <div class="sm:col-span-2">
-                                    <span class="text-gray-600 dark:text-gray-400" x-text="t('consent')"></span>
-                                    <p class="font-medium">
-                                        <span x-show="privacyConsent" class="text-green-600 dark:text-green-400" x-text="t('accepted')"></span>
-                                        <span x-show="!privacyConsent" class="text-red-600 dark:text-red-400" x-text="t('not_accepted')"></span>
-                                    </p>
-                                </div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('purpose')"></span>
+                                <p class="font-medium" x-text="purposeName || '-'"></p>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-3 pt-4" x-show="step > 1" x-cloak>
-                        <button type="button" @@click="step--" class="btn-ghost">
-                            <svg class="w-5 h-5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            <span x-text="t('back') || 'Back'"></span>
-                        </button>
+                    <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-950 rounded-xl" x-show="controlNumber">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-semibold text-sm" x-text="t('reference')"></h3>
+                            <button type="button" @@click="goToStep(3); scrollToField('document_type_id')" class="text-xs text-primary-700 dark:text-primary-400 hover:underline" x-text="t('edit')"></button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('control_number')"></span>
+                                <p class="font-medium text-primary-700 dark:text-primary-400" x-text="controlNumber || '-'"></p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('queue_number')"></span>
+                                <p class="font-medium" x-text="queueNumber || '-'"></p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <span class="text-gray-600 dark:text-gray-400" x-text="t('qr_code')"></span>
+                                <div class="mt-1" x-show="qrCode">
+                                    <img x-bind:src="'data:image/png;base64,' + qrCode" alt="QR Code" class="w-32 h-32">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+</div>
+
+                    <div x-cloak x-show="formError" class="mb-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400" role="alert">
+                        <svg class="w-4 h-4 inline mr-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                        <span x-text="formError"></span>
+                    </div>
+
+                    <div x-cloak x-show="submitting" class="mb-3 flex items-center gap-2 p-3 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800 rounded-xl text-sm text-primary-700 dark:text-primary-400" role="status">
+                        <svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span x-text="t('processing') || 'Processing your request, please wait...'"></span>
                     </div>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
-                        <div class="flex flex-wrap gap-2">
-                            <a href="{{ url('/') }}" wire:navigate class="btn-ghost" x-text="t('cancel')"></a>
-                            <button type="button" @@click="clearForm()" class="btn-ghost border border-danger text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white text-xs px-4 py-2 rounded-lg transition-colors duration-200"
-                                    x-text="t('clear_form')"></button>
-                        </div>
-                        <div>
+                        <button type="button" x-show="step > 1" x-cloak @@click="goToStep(this.step - 1)" :disabled="submitting" class="btn-ghost">
+                            <svg class="w-5 h-5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span x-text="t('back') || 'Back'"></span>
+                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" @@click="clearForm()" :disabled="submitting" class="btn-ghost border border-danger/40 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white text-xs px-4 py-2 rounded-lg transition-colors duration-200" x-text="t('clear_form')"></button>
+                            <a href="{{ url('/') }}" wire:navigate :class="submitting ? 'pointer-events-none opacity-50' : ''" class="btn-ghost" x-text="t('cancel')"></a>
                             <template x-if="step < totalSteps">
-                                <button type="button" @@click="validateStep()" class="btn-primary px-8" x-text="t('next') || 'Next'"></button>
+                                <button type="button" @@click="validateStep()" :disabled="submitting" class="btn-primary px-8" x-text="t('next') || 'Next'"></button>
                             </template>
                             <template x-if="step === totalSteps">
                                 <button type="submit" class="btn-primary px-8" :disabled="submitting">
@@ -674,13 +768,14 @@
 <script>
     function registrationForm(translations) {
         return {
-            lang: localStorage.getItem('registration_lang') || 'en',
+            lang: localStorage.getItem('registration_lang') || 'fil',
             translations: translations,
 
             step: 1,
-            totalSteps: 4,
+            totalSteps: 3,
             submitting: false,
             errors: {},
+            formError: '',
             draftRestored: false,
             submissionId: (window.crypto && typeof window.crypto.randomUUID === 'function')
                 ? window.crypto.randomUUID()
@@ -730,15 +825,22 @@
             idScanBackNeedsReupload: false,
             statusPhotoPreview: '',
             statusPhotoSource: 'upload',
+            id1x1Preview: '',
+            id1x1Source: 'upload',
+            id1x1Selected: false,
+            id1x1NeedsReupload: false,
 
             documentTypeId: '{{ old("document_type_id") }}',
             purposeId: '{{ old("purpose_id") }}',
             purposeOther: '{{ old("purpose_other") }}',
             privacyConsent: {{ old('privacy_consent') ? 'true' : 'false' }},
+            isPregnant: {{ old('is_pregnant') ? 'true' : 'false' }},
+            controlNumber: '',
+            qrCode: '',
+            queueNumber: '',
 
             documentTypeNames: {{ Illuminate\Support\Js::from($documentTypes->pluck('name', 'id')) }},
-            purposeNames: {{ Illuminate\Support\Js::from($requestPurposes->pluck('name', 'id')) }},
-            othersPurposeId: {{ $othersPurpose?->id ?: 'null' }},
+            purposeNames: {{ Illuminate\Support\Js::from($purposes->pluck('name', 'id')) }},
 
             fieldStepMap: {
                 first_name: 1, last_name: 1, middle_name: 1, middle_name_none: 1,
@@ -750,7 +852,7 @@
                 barangay: 1, subdivision: 1, purok: 1,
                 contact_number: 1, emergency_contact: 1, email: 1,
                 city: 1, province: 1,
-                id_type: 2, id_scan_front: 2, id_scan_back: 2,
+                id_type: 2, id_scan_front: 2, id_scan_back: 2, id_1x1: 2,
                 document_type_id: 3, purpose_id: 3, purpose_other: 3,
                 privacy_consent: 3, is_pregnant: 3,
             },
@@ -811,11 +913,33 @@
             },
 
             get purposeName() {
-                return this.purposeNames[this.purposeId] || (this.purposeId === this.othersPurposeId ? this.t('others') : '-');
+                return this.purposeNames[this.purposeId] || '-';
             },
 
             get purposeIsOthers() {
-                return this.purposeId && this.othersPurposeId !== null && this.purposeId === this.othersPurposeId;
+                return false;
+            },
+
+            isCertificateOfIndigency() {
+                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_INDIGENCY');
+            },
+            isCertificateOfBarangayCert() {
+                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_BARANGAY_CERT');
+            },
+            isCertificateOfResidency() {
+                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_RESIDENCY');
+            },
+            isBarangayClearance() {
+                return this.documentTypeId == this.getDocumentTypeIdByCode('BRGY_CLEARANCE');
+            },
+            getDocumentTypeIdByCode(code) {
+                var ids = @json($documentTypeCodeMap);
+                return ids[code] || null;
+            },
+            onDocumentTypeChange() {
+                this.purposeId = '';
+                this.purposeOther = '';
+                this.saveDraft();
             },
 
             t(key) {
@@ -893,10 +1017,42 @@
                 this.errors.status_verification_photo = '';
             },
 
+            selectId1x1(source) {
+                this.id1x1Source = source;
+                const input = document.getElementById('id_1x1_file');
+                if (input) {
+                    input.removeAttribute('capture');
+                    if (source === 'camera') input.setAttribute('capture', 'environment');
+                    input.value = '';
+                    this.id1x1Preview = '';
+                    this.id1x1Selected = false;
+                    input.click();
+                }
+            },
+
+            onId1x1Change(event) {
+                const file = event.target.files[0];
+                this.id1x1Preview = file ? URL.createObjectURL(file) : '';
+                this.id1x1Selected = !!file;
+                this.id1x1NeedsReupload = false;
+                this.errors.id_1x1 = '';
+                this.saveDraft();
+            },
+
+            goToStep(n) {
+                if (this.submitting) return;
+                const target = Number(n);
+                if (Number.isInteger(target) && target >= 1 && target <= this.totalSteps) {
+                    this.step = target;
+                    this.saveDraft();
+                }
+            },
+
             validateStep() {
                 let valid = true;
                 const errors = {};
                 let firstErrorField = null;
+                this.formError = '';
                 if (this.step === 1) {
                     if (!this.first_name) { valid = false; errors.first_name = this.t('first_name_required') || 'First name is required.'; if (!firstErrorField) firstErrorField = 'first_name'; }
                     if (!this.last_name) { valid = false; errors.last_name = this.t('last_name_required') || 'Last name is required.'; if (!firstErrorField) firstErrorField = 'last_name'; }
@@ -910,6 +1066,7 @@
                     if (!this.idType) { valid = false; errors.id_type = this.t('id_type_required') || 'Please select an ID type.'; if (!firstErrorField) firstErrorField = 'id_type'; }
                     if (!this.idScanFrontSelected) { valid = false; errors.id_scan_front = this.t('id_scan_front_required') || 'Please scan or upload the front of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_front'; }
                     if (!this.idScanBackSelected) { valid = false; errors.id_scan_back = this.t('id_scan_back_required') || 'Please scan or upload the back of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_back'; }
+                    if (!this.id1x1Selected) { valid = false; errors.id_1x1 = this.t('id_photo_1x1_required') || 'Please upload or take a 1x1 ID picture.'; if (!firstErrorField) firstErrorField = 'id_1x1'; }
                 } else if (this.step === 3) {
                     if (!this.documentTypeId) { valid = false; errors.document_type_id = this.t('select_document') || 'Please select a document.'; if (!firstErrorField) firstErrorField = 'document_type_id'; }
                     if (!this.purposeId) { valid = false; errors.purpose_id = this.t('select_purpose') || 'Please select a purpose.'; if (!firstErrorField) firstErrorField = 'purpose_id'; }
@@ -917,7 +1074,7 @@
                     if (!this.privacyConsent) { valid = false; errors.privacy_consent = this.t('consent_required'); if (!firstErrorField) firstErrorField = 'privacy_consent'; }
                 }
                 if (valid) {
-                    this.step++;
+                    this.goToStep(this.step + 1);
                 } else {
                     this.errors = errors;
                     this.scrollToField(firstErrorField);
@@ -967,41 +1124,86 @@
                     idType: this.idType,
                     idScanFrontSelected: this.idScanFrontSelected,
                     idScanBackSelected: this.idScanBackSelected,
+                    id1x1Selected: this.id1x1Selected,
                     documentTypeId: this.documentTypeId,
                     purposeId: this.purposeId,
                     purposeOther: this.purposeOther,
                     privacyConsent: this.privacyConsent,
+                    isPregnant: this.isPregnant,
                 };
                 localStorage.setItem('registration_draft', JSON.stringify(data));
             },
 
-            restoreDraft() {
-                const saved = localStorage.getItem('registration_draft');
-                if (saved) {
+restoreDraft() {
+                    let saved = null;
                     try {
-                        const data = JSON.parse(saved);
-                        Object.keys(data).forEach(key => {
-                            if (this.hasOwnProperty(key) && data[key] !== null && data[key] !== undefined) {
+                        saved = localStorage.getItem('registration_draft');
+                    } catch (e) {
+                        console.warn('register: unable to read draft from localStorage', e);
+                        return;
+                    }
+                    if (!saved) return;
+
+                    let data = null;
+                    try {
+                        data = JSON.parse(saved);
+                    } catch (e) {
+                        console.warn('register: corrupted draft removed from localStorage', e);
+                        this.clearCorruptDraft();
+                        return;
+                    }
+                    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                        console.warn('register: invalid draft removed from localStorage');
+                        this.clearCorruptDraft();
+                        return;
+                    }
+
+                    const savedStep = Number(data.step);
+                    this.step = (Number.isInteger(savedStep) && savedStep >= 1 && savedStep <= this.totalSteps)
+                        ? savedStep
+                        : 1;
+
+                    Object.keys(data).forEach(key => {
+                        if (key === 'step') return;
+                        if (Object.prototype.hasOwnProperty.call(this, key) && data[key] !== null && data[key] !== undefined) {
+                            const valueType = typeof data[key];
+                            if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') {
                                 this[key] = data[key];
                             }
-                        });
-                        if (this.step < 1 || this.step > this.totalSteps) {
-                            this.step = 1;
                         }
-                        if (data.idScanFrontSelected) {
-                            this.idScanFrontNeedsReupload = true;
-                            this.idScanFrontSelected = false;
-                        }
-                        if (data.idScanBackSelected) {
-                            this.idScanBackNeedsReupload = true;
-                            this.idScanBackSelected = false;
-                        }
-                        this.draftRestored = true;
-                    } catch (e) {}
-                }
-            },
+                    });
+
+                    if (data.idScanFrontSelected) {
+                        this.idScanFrontNeedsReupload = true;
+                        this.idScanFrontSelected = false;
+                    }
+                    if (data.idScanBackSelected) {
+                        this.idScanBackNeedsReupload = true;
+                        this.idScanBackSelected = false;
+                    }
+                    if (data.id1x1Selected) {
+                        this.id1x1NeedsReupload = true;
+                        this.id1x1Selected = false;
+                    }
+
+                    this.draftRestored = true;
+                    this.$nextTick(() => {
+                        setTimeout(() => { this.draftRestored = false; }, 5000);
+                    });
+                },
+
+                clearCorruptDraft() {
+                    this.step = 1;
+                    this.draftRestored = false;
+                    try {
+                        localStorage.removeItem('registration_draft');
+                    } catch (e) {
+                        console.warn('register: unable to remove corrupted draft', e);
+                    }
+                },
 
             clearForm() {
+                if (this.submitting) return;
                 if (confirm(this.t('clear_form_confirm') || 'Are you sure you want to clear the form?')) {
                     localStorage.removeItem('registration_draft');
                     this.first_name = '';
@@ -1038,6 +1240,10 @@
                     this.idScanBackSource = 'upload';
                     this.idScanBackSelected = false;
                     this.idScanBackNeedsReupload = false;
+                    this.id1x1Preview = '';
+                    this.id1x1Source = 'upload';
+                    this.id1x1Selected = false;
+                    this.id1x1NeedsReupload = false;
                     this.statusPhotoPreview = '';
                     this.statusPhotoSource = 'upload';
                     this.documentTypeId = '';
@@ -1045,6 +1251,7 @@
                     this.purposeOther = '';
                     this.privacyConsent = false;
                     this.errors = {};
+                    this.formError = '';
                     this.draftRestored = false;
                     this.step = 1;
                 }
@@ -1070,6 +1277,7 @@
                 this.submitting = true;
                 form.dataset.submitting = '1';
                 this.errors = {};
+                this.formError = '';
 
                 const formData = new FormData(form);
 
@@ -1122,23 +1330,23 @@
 
                     // 6. Handle Server Error (500+)
                     if (response.status >= 500) {
-                        alert('{{ __('The server encountered an error. Please try again later.') }}');
+                        this.formError = '{{ __('The server encountered an error. Please try again later.') }}';
                         return;
                     }
 
                     // 7. Handle unexpected response (e.g., 302 redirect instead of JSON)
                     if (!data) {
                         console.error("Server returned HTML instead of JSON! Response status:", response.status);
-                        alert('{{ __('An unexpected error occurred. Please try again.') }}');
+                        this.formError = '{{ __('An unexpected error occurred. Please try again.') }}';
                         return;
                     }
 
                     // 8. Fallback for other error responses
-                    alert(data && data.error ? data.error : '{{ __('An unexpected error occurred. Please try again.') }}');
+                    this.formError = data && data.error ? data.error : '{{ __('An unexpected error occurred. Please try again.') }}';
 
                 } catch (e) {
                     console.error("Submission exception:", e);
-                    alert('{{ __('A network error occurred. Please check your connection and try again.') }}');
+                    this.formError = '{{ __('A network error occurred. Please check your connection and try again.') }}';
                 } finally {
                     this.submitting = false;
                     delete form.dataset.submitting;

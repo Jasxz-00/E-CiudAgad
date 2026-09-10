@@ -41,6 +41,7 @@ class Resident extends Model
         'person_status',
         'status_verification_photo',
         'verified_at',
+        'is_pregnant',
     ];
 
     protected function casts(): array
@@ -69,6 +70,21 @@ class Resident extends Model
     public function documentRequests()
     {
         return $this->hasMany(DocumentRequest::class);
+    }
+
+    public function concerns()
+    {
+        return $this->hasMany(Concern::class);
+    }
+
+    public function profileChangeRequests()
+    {
+        return $this->hasMany(ProfileChangeRequest::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'subject');
     }
 
     public function getFullNameAttribute(): string

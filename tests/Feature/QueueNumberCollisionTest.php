@@ -145,6 +145,7 @@ class QueueNumberCollisionTest extends TestCase
         $response = $this->post(route('register'), array_merge($this->registrationData(), [
             'id_scan_front' => $this->createTestIdImage(),
             'id_scan_back' => $this->createTestIdImage(),
+            'id_1x1' => $this->createTestIdImage(),
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',

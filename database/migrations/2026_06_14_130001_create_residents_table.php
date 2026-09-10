@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('building_no')->nullable();
             $table->string('unit_no')->nullable();
             $table->string('street')->nullable();
+            $table->string('road')->nullable();
             $table->string('subdivision')->default('PHASE 1');
             $table->string('barangay')->default('CIUDAD DE STRIKE');
             $table->string('city')->default('BACOOR CITY');

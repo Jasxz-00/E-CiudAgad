@@ -86,8 +86,8 @@
                     @if($request->resident?->idVerifications->isNotEmpty())
                         @foreach($request->resident->idVerifications as $idv)
                             @php
-                                $frontUrl = $idv->file_path ? Storage::disk('private')->url($idv->file_path) : null;
-                                $backUrl = $idv->back_file_path ? Storage::disk('private')->url($idv->back_file_path) : null;
+                                $frontUrl = $idv->file_path ? route('storage.private', ['path' => $idv->file_path]) : null;
+                                $backUrl = $idv->back_file_path ? route('storage.private', ['path' => $idv->back_file_path]) : null;
                             @endphp
                             <div class="p-3 bg-gray-50 dark:bg-gray-950 rounded-xl">
                                 <p class="text-sm font-medium mb-1">{{ __('common.id_verification') }} - {{ str_replace('_', ' ', ucfirst($idv->id_type)) }}</p>
@@ -123,7 +123,7 @@
 
                     @if($request->resident?->status_verification_photo)
                         @php
-                            $statusPhotoUrl = Storage::disk('private')->url($request->resident->status_verification_photo);
+                            $statusPhotoUrl = route('storage.private', ['path' => $request->resident->status_verification_photo]);
                         @endphp
                         <div class="p-3 bg-gray-50 dark:bg-gray-950 rounded-xl">
                             <p class="text-sm font-medium mb-1">{{ __('common.status_verification_photo') }}</p>

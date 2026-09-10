@@ -4,7 +4,7 @@ return [
     'login' => 'Mag-Log In',
     'register' => 'Magrehistro',
     'logout' => 'Mag-Log Out',
-    'email' => 'Email Address',
+    'email' => 'Email',
     'password' => 'Password',
     'pin' => 'PIN',
     'tracking_number' => 'Tracking Number',

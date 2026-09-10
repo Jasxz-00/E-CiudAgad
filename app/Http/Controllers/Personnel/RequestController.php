@@ -111,8 +111,8 @@ class RequestController extends Controller
         AuditLog::create([
             'user_id' => Auth::id(),
             'action' => 'reviewed',
-            'auditable_type' => DocumentRequest::class,
-            'auditable_id' => $documentRequest->id,
+            'subject_type' => DocumentRequest::class,
+            'subject_id' => $documentRequest->id,
             'description' => 'Started reviewing document request '.$documentRequest->queue_number,
         ]);
 
@@ -144,8 +144,8 @@ class RequestController extends Controller
             AuditLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'approved',
-                'auditable_type' => DocumentRequest::class,
-                'auditable_id' => $documentRequest->id,
+                'subject_type' => DocumentRequest::class,
+                'subject_id' => $documentRequest->id,
                 'description' => 'Approved document request '.$documentRequest->queue_number,
             ]);
 
@@ -178,8 +178,8 @@ class RequestController extends Controller
         AuditLog::create([
             'user_id' => Auth::id(),
             'action' => 'rejected',
-            'auditable_type' => DocumentRequest::class,
-            'auditable_id' => $documentRequest->id,
+            'subject_type' => DocumentRequest::class,
+            'subject_id' => $documentRequest->id,
             'description' => 'Rejected document request '.$documentRequest->queue_number.': '.$validated['rejection_reason'],
         ]);
 
@@ -206,8 +206,8 @@ class RequestController extends Controller
         AuditLog::create([
             'user_id' => Auth::id(),
             'action' => 'completed',
-            'auditable_type' => DocumentRequest::class,
-            'auditable_id' => $documentRequest->id,
+            'subject_type' => DocumentRequest::class,
+            'subject_id' => $documentRequest->id,
             'description' => 'Completed document request '.$documentRequest->queue_number,
         ]);
 
@@ -233,8 +233,8 @@ class RequestController extends Controller
         AuditLog::create([
             'user_id' => Auth::id(),
             'action' => 'released',
-            'auditable_type' => DocumentRequest::class,
-            'auditable_id' => $documentRequest->id,
+            'subject_type' => DocumentRequest::class,
+            'subject_id' => $documentRequest->id,
             'description' => 'Released document request '.$documentRequest->queue_number,
         ]);
 

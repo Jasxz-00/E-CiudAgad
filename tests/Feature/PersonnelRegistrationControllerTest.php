@@ -70,7 +70,7 @@ class PersonnelRegistrationControllerTest extends TestCase
 
         $response->assertSessionHasErrors([
             'first_name', 'last_name', 'contact_number',
-            'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back',
+            'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back', 'id_1x1',
             'document_type_id', 'purpose_id',
         ]);
     }
@@ -126,6 +126,7 @@ class PersonnelRegistrationControllerTest extends TestCase
         $payload['first_name'] = 'PEDRO';
         $payload['last_name'] = 'GARCIA';
         $payload['middle_name'] = '';
+        $payload['middle_name_none'] = 1;
         $payload['birthdate_month'] = 6;
         $payload['birthdate_day'] = 22;
         $payload['birthdate_year'] = 1988;
@@ -174,12 +175,15 @@ class PersonnelRegistrationControllerTest extends TestCase
             'birthdate_day' => 15,
             'birthdate_year' => 1990,
             'gender' => 'male',
+            'civil_status' => 'single',
+            'place_of_birth' => 'BACOOR CITY, CAVITE',
             'contact_number' => '0917-123-4567',
             'emergency_contact' => '0922-987-6543',
             'nationality' => 'FILIPINO',
             'id_type' => 'phil_id',
             'id_scan_front' => $this->createTestIdImage(),
             'id_scan_back' => $this->createTestIdImage(),
+            'id_1x1' => $this->createTestIdImage(),
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'privacy_consent' => 1,

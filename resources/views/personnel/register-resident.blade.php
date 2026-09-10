@@ -115,6 +115,10 @@
                     <input id="status_verification_photo" type="file" name="status_verification_photo" accept=".jpg,.jpeg,.png,.pdf" autocomplete="off" class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700">
                 </div>
             </div>
+            <div class="flex items-center gap-2 mt-4">
+                <input type="checkbox" name="is_pregnant" id="is_pregnant" value="1" {{ old('is_pregnant') ? 'checked' : '' }} class="w-4 h-4 rounded border-gray-200 dark:border-gray-700 text-primary-700">
+                <label for="is_pregnant" class="text-sm text-gray-600 dark:text-gray-400">Currently pregnant</label>
+            </div>
 
             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Address</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

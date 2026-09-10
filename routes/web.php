@@ -20,6 +20,7 @@ use App\Http\Controllers\Personnel\ResidentRequestController as PersonnelResiden
 use App\Http\Controllers\Resident\ConcernController as ResidentConcernController;
 use App\Http\Controllers\Resident\DashboardController as ResidentDashboardController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('landing');
@@ -29,9 +30,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
-    Route::post('/register/insist-duplicate', [RegisterController::class, 'insistDuplicate'])->name('register.insist-duplicate');
-    Route::get('/register/credentials', [RegisterController::class, 'showCredentials'])->name('register.credentials');
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('/register/insist-duplicate', [RegisterController::class, 'insistDuplicate'])->middleware('throttle:10,1')->name('register.insist-duplicate');
 
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendRecovery'])->name('password.email');
@@ -45,13 +45,27 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->mid
 
 Route::get('/storage/private/{path}', function (string $path) {
     abort_unless(auth()->check(), 403);
-    $fullPath = storage_path('app/private/'.$path);
-    abort_unless(file_exists($fullPath), 404);
 
-    return response()->file($fullPath);
+    $user = auth()->user();
+
+    if (! in_array($user->role, ['admin', 'personnel'])) {
+        abort(403);
+    }
+
+    if (Storage::disk('private')->exists($path)) {
+        return Storage::disk('private')->response($path);
+    }
+
+    abort(404);
 })->where('path', '.*')->middleware('auth')->name('storage.private');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/request/{control_number}', [App\Http\Controllers\Queue\QueueMonitorController::class, 'show'])->name('request.show');
+    Route::middleware(['role:personnel'])->prefix('queue')->name('queue.')->group(function () {
+        Route::get('/monitor', [App\Http\Controllers\Queue\QueueMonitorController::class, 'index'])->name('monitor');
+        Route::get('/personnel', [App\Http\Controllers\Queue\QueueMonitorController::class, 'personnel'])->name('personnel');
+        Route::post('/{control_number}/process', [App\Http\Controllers\Queue\QueueMonitorController::class, 'process'])->name('process');
+    });
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::match(['get', 'post'], '/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');

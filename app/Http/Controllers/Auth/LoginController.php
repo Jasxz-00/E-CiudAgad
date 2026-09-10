@@ -35,9 +35,19 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $throttleKey = 'staff-login:'.strtolower($validated['login']).'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'login' => __('auth.throttle', ['seconds' => $seconds]),
+            ])->status(429);
+        }
+
         $field = filter_var($validated['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         if (Auth::attempt([$field => $validated['login'], 'password' => $validated['password']], $request->boolean('remember'))) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             $user = Auth::user();
@@ -57,6 +67,8 @@ class LoginController extends Controller
                 default => redirect()->intended(route('resident.dashboard')),
             };
         }
+
+        RateLimiter::hit($throttleKey, 60);
 
         throw ValidationException::withMessages([
             'login' => __('auth.failed'),

@@ -133,6 +133,7 @@ class RegistrationController extends Controller
                 'emergency_contact' => $validated['emergency_contact'],
                 'category' => $category,
                 'category_remarks' => $category === 'pwd' ? 'Pending disability verification' : null,
+                'is_pregnant' => ! empty($validated['is_pregnant']) ? 1 : 0,
             ];
 
             $optionalFields = ['building_no', 'unit_no', 'street', 'road', 'barangay', 'subdivision', 'purok'];

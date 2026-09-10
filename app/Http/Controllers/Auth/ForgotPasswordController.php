@@ -167,15 +167,27 @@ class ForgotPasswordController extends Controller
         $contactNumber = $validated['contact_number'];
         $otp = $validated['otp'];
 
+        $throttleKey = 'phone-otp-verify:'.$contactNumber.'|'.$request->ip();
+
+        if (app(RateLimiter::class)->tooManyAttempts($throttleKey, 5)) {
+            $seconds = app(RateLimiter::class)->availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'otp' => __('auth.throttle', ['seconds' => $seconds]),
+            ])->status(429);
+        }
+
         $cached = Cache::get('phone_reset_otp_'.$contactNumber);
 
         if (! $cached || $cached['otp'] != $otp || now()->isAfter($cached['expires_at'])) {
             Cache::forget('phone_reset_otp_'.$contactNumber);
+            app(RateLimiter::class)->hit($throttleKey, 600);
 
             throw ValidationException::withMessages([
                 'otp' => __('Invalid or expired OTP code. Please request a new one.'),
             ]);
         }
+
+        app(RateLimiter::class)->clear($throttleKey);
 
         $token = app('auth.password.broker')->createToken(
             User::find($cached['user_id'])

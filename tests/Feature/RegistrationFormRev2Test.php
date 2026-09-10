@@ -136,7 +136,7 @@ class RegistrationFormRev2Test extends TestCase
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonStructure(['errors' => ['first_name', 'last_name', 'contact_number', 'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back', 'document_type_id', 'purpose_id']]);
+        $response->assertJsonStructure(['errors' => ['first_name', 'last_name', 'contact_number', 'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back', 'document_type_id']]);
     }
 
     public function test_valid_registration_creates_account_and_returns_json(): void
@@ -182,6 +182,7 @@ class RegistrationFormRev2Test extends TestCase
         $response = $this->post(route('register'), array_merge($data, [
             'id_scan_front' => $idFile,
             'id_scan_back' => $idFile,
+            'id_1x1' => $idFile,
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
@@ -299,6 +300,7 @@ class RegistrationFormRev2Test extends TestCase
         $response = $this->post(route('register'), array_merge($data, [
             'id_scan_front' => $idFile,
             'id_scan_back' => $idFile,
+            'id_1x1' => $idFile,
         ]), [
             'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
@@ -307,5 +309,131 @@ class RegistrationFormRev2Test extends TestCase
         $response->assertStatus(200);
         $response->assertJsonStructure(['success', 'redirect']);
         $this->assertTrue($response->json('success'));
+    }
+
+    public function test_invalid_calendar_birthdate_is_rejected(): void
+    {
+        $idFile = $this->createTestIdImage();
+
+        $data = [
+            'first_name' => 'JUAN',
+            'last_name' => 'DELA CRUZ',
+            'middle_name' => 'SANTOS',
+            'middle_name_none' => '0',
+            'suffix' => '',
+            'nationality' => 'FILIPINO',
+            'birthdate_month' => '2',
+            'birthdate_day' => '31',
+            'birthdate_year' => '1990',
+            'gender' => 'male',
+            'civil_status' => 'single',
+            'place_of_birth' => 'BACOOR CITY, CAVITE',
+            'person_status' => '',
+            'street' => 'M.H. DEL PILAR ST',
+            'barangay' => 'MOLINO I',
+            'contact_number' => '0912-345-6789',
+            'emergency_contact' => '0998-765-4321',
+            'id_type' => 'phil_id',
+            'document_type_id' => '1',
+            'purpose_id' => '1',
+            'privacy_consent' => '1',
+            'assisted_mode' => '0',
+            'is_pregnant' => '0',
+            'id_scan_front' => $idFile,
+            'id_scan_back' => $idFile,
+            'id_1x1' => $idFile,
+        ];
+
+        $response = $this->post(route('register'), $data, [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonStructure(['errors' => ['birthdate_day']]);
+    }
+
+    public function test_registration_without_middle_name_requires_none_checkbox(): void
+    {
+        $idFile = $this->createTestIdImage();
+
+        $data = [
+            'first_name' => 'JUAN',
+            'last_name' => 'DELA CRUZ',
+            'middle_name' => '',
+            'middle_name_none' => '0',
+            'suffix' => '',
+            'nationality' => 'FILIPINO',
+            'birthdate_month' => '1',
+            'birthdate_day' => '15',
+            'birthdate_year' => '1990',
+            'gender' => 'male',
+            'civil_status' => 'single',
+            'place_of_birth' => 'BACOOR CITY, CAVITE',
+            'person_status' => '',
+            'street' => 'M.H. DEL PILAR ST',
+            'barangay' => 'MOLINO I',
+            'contact_number' => '0912-345-6789',
+            'emergency_contact' => '0998-765-4321',
+            'id_type' => 'phil_id',
+            'document_type_id' => '1',
+            'purpose_id' => '1',
+            'privacy_consent' => '1',
+            'assisted_mode' => '0',
+            'is_pregnant' => '0',
+            'id_scan_front' => $idFile,
+            'id_scan_back' => $idFile,
+            'id_1x1' => $idFile,
+        ];
+
+        $response = $this->post(route('register'), $data, [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonStructure(['errors' => ['middle_name']]);
+    }
+
+    public function test_pregnant_category_only_allowed_for_female(): void
+    {
+        $idFile = $this->createTestIdImage();
+
+        $data = [
+            'first_name' => 'JUAN',
+            'last_name' => 'DELA CRUZ',
+            'middle_name' => 'SANTOS',
+            'middle_name_none' => '0',
+            'suffix' => '',
+            'nationality' => 'FILIPINO',
+            'birthdate_month' => '1',
+            'birthdate_day' => '15',
+            'birthdate_year' => '1990',
+            'gender' => 'male',
+            'civil_status' => 'single',
+            'place_of_birth' => 'BACOOR CITY, CAVITE',
+            'person_status' => '',
+            'street' => 'M.H. DEL PILAR ST',
+            'barangay' => 'MOLINO I',
+            'contact_number' => '0912-345-6789',
+            'emergency_contact' => '0998-765-4321',
+            'id_type' => 'phil_id',
+            'document_type_id' => '1',
+            'purpose_id' => '1',
+            'privacy_consent' => '1',
+            'assisted_mode' => '0',
+            'is_pregnant' => '1',
+            'id_scan_front' => $idFile,
+            'id_scan_back' => $idFile,
+            'id_1x1' => $idFile,
+        ];
+
+        $response = $this->post(route('register'), $data, [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonStructure(['errors' => ['is_pregnant']]);
     }
 }

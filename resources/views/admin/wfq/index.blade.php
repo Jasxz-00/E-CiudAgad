@@ -99,10 +99,10 @@
             </table>
         </div>
     </div>
-    @empty
-<div class="card">
-            <p class="text-sm text-gray-600 dark:text-gray-400">No WFQ configurations yet. Click "Add Configuration" to create one.</p>
-        </div>
+@empty
+    <div class="card">
+        <p class="text-sm text-gray-600 dark:text-gray-400">No WFQ configurations yet. Click "Add Configuration" to create one.</p>
+    </div>
     @endforelse
 </div>
 
@@ -155,11 +155,10 @@
     </div>
 </div>
 
-<!-- Edit Modal -->
 <div x-cloak x-show="showEdit" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
     <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full">
         <h3 class="text-lg font-bold mb-4">Edit Configuration</h3>
-        <form method="POST" x-bind:action="'{{ route('admin.wfq.update', ':id') }}'.replace(':id', editId)" class="space-y-4">
+        <form method="POST" action="{{ route('admin.wfq.update', ':id') }}" class="space-y-4" x-bind:action="`{{ route('admin.wfq.update', ':id') }}`.replace(':id', editId)">
             @csrf
             @method('PUT')
             <p class="text-sm text-gray-600 dark:text-gray-400">Editing: <span class="font-medium text-gray-900 dark:text-gray-100" x-text="editLabel"></span></p>

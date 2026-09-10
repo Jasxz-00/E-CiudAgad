@@ -12,13 +12,19 @@ use Illuminate\Support\Facades\DB;
 
 class WFQService
 {
-    public function calculateWeight(Resident $resident, DocumentType $documentType, RequestPurpose $purpose): float
+    public function calculateWeight(Resident $resident, DocumentType $documentType, ?RequestPurpose $purpose): float
     {
         $categoryWeight = $this->getActiveWeight('category_weight', $resident->category);
-        $complexityWeight = $this->getActiveWeight('complexity_weight', $documentType->complexity);
-        $purposeWeight = $this->getActiveWeight('purpose_weight', $purpose->code);
 
-        return (float) $categoryWeight * (float) $complexityWeight * (float) $purposeWeight;
+        $complexityWeight = $documentType->complexity_weight > 0
+            ? (float) $documentType->complexity_weight
+            : $this->getActiveWeight('complexity_weight', $documentType->complexity);
+
+        $purposeWeight = $purpose && $purpose->priority_weight > 0
+            ? (float) $purpose->priority_weight
+            : $this->getActiveWeight('purpose_weight', $purpose?->code ?? '');
+
+        return (float) $categoryWeight * $complexityWeight * $purposeWeight;
     }
 
     public function calculateVirtualFinishTime(float $totalWeight): float

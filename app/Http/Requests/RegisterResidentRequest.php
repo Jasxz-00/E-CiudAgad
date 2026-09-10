@@ -17,17 +17,18 @@ class RegisterResidentRequest extends FormRequest
         $rules = [
             'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Z\s]+$/'],
             'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Z\s]+$/'],
-            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z\s]*$/'],
+            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z\s]*$/', 'required_unless:middle_name_none,true'],
+            'middle_name_none' => ['nullable', 'boolean'],
             'suffix' => ['nullable', 'string', 'max:10', 'in:JR.,SR.,II,III,IV,V'],
             'birthdate_month' => ['required', 'integer', 'between:1,12'],
             'birthdate_day' => ['required', 'integer', 'between:1,31'],
             'birthdate_year' => ['required', 'integer', 'between:1900,'.date('Y')],
             'gender' => ['required', 'in:male,female'],
-            'civil_status' => ['nullable', 'string', 'max:50', Rule::in(['single', 'married', 'widowed', 'divorced'])],
-            'nationality' => ['nullable', 'string', 'max:100', 'regex:/^[A-Z\s]+$/'],
+            'civil_status' => ['required', 'string', 'max:50', Rule::in(['single', 'married', 'widowed', 'divorced'])],
+            'nationality' => ['required', 'string', 'max:100', 'regex:/^[A-Z\s]+$/'],
             'occupation' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z\s]*$/'],
             'religion' => ['nullable', 'string', 'max:100'],
-            'place_of_birth' => ['nullable', 'string', 'max:255'],
+            'place_of_birth' => ['required', 'string', 'max:255'],
             'building_no' => ['nullable', 'string', 'max:50'],
             'unit_no' => ['nullable', 'string', 'max:50'],
             'street' => ['nullable', 'string', 'max:255'],
@@ -47,7 +48,6 @@ class RegisterResidentRequest extends FormRequest
                 },
             ],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'middle_name_none' => ['nullable', 'boolean'],
             'person_status' => ['nullable', 'string', 'in:pwd,senior,pregnant'],
             'status_verification_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'id_type' => ['required', 'string', 'max:50'],
@@ -58,6 +58,12 @@ class RegisterResidentRequest extends FormRequest
                 'max:5120',
             ],
             'id_scan_back' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png',
+                'max:5120',
+            ],
+            'id_1x1' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png',
@@ -74,6 +80,17 @@ class RegisterResidentRequest extends FormRequest
             'ocr_confidence' => ['nullable', 'integer', 'min:0', 'max:100'],
             'ocr_extracted' => ['nullable', 'string', 'max:100'],
         ];
+
+        $docType = $this->input('document_type_id');
+        $docTypeModel = \App\Models\DocumentType::find($docType);
+
+        if ($docTypeModel && $docTypeModel->code === 'CERT_RESIDENCY') {
+            $rules['purpose_other'] = ['required', 'string', 'max:255'];
+            $rules['purpose_id'] = ['nullable'];
+        } elseif ($docTypeModel && in_array($docTypeModel->code, ['CERT_INDIGENCY', 'CERT_BARANGAY_CERT', 'BRGY_CLEARANCE'])) {
+            $rules['purpose_id'] = ['required', 'exists:request_purposes,id'];
+            $rules['purpose_other'] = ['nullable'];
+        }
 
         if ($this->filled('person_status')) {
             $rules['status_verification_photo'][] = 'required';
@@ -112,6 +129,13 @@ class RegisterResidentRequest extends FormRequest
             'birthdate_month.required' => __('Please select your birth month.'),
             'birthdate_day.required' => __('Please select your birth day.'),
             'birthdate_year.required' => __('Please select your birth year.'),
+            'birthdate_month.between' => __('Please provide a valid birthdate.'),
+            'birthdate_day.between' => __('Please provide a valid birthdate.'),
+            'birthdate_year.between' => __('Please provide a valid birthdate.'),
+            'middle_name.required_unless' => __('Please enter your middle name, or tick the "NONE" checkbox if you do not have one.'),
+            'nationality.required' => __('Please enter your nationality.'),
+            'civil_status.required' => __('Please select your civil status.'),
+            'place_of_birth.required' => __('Please enter your place of birth.'),
             'email.email' => __('Please enter a valid email address.'),
             'email.unique' => __('This email address is already registered.'),
             'civil_status.in' => __('Please select a valid civil status.'),
@@ -120,52 +144,76 @@ class RegisterResidentRequest extends FormRequest
         ];
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $month = (int) $this->input('birthdate_month');
+            $day = (int) $this->input('birthdate_day');
+            $year = (int) $this->input('birthdate_year');
+
+            if ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $year >= 1900 && $year <= (int) date('Y')) {
+                if (! checkdate($month, $day, $year)) {
+                    $validator->errors()->add('birthdate_day', __('Please provide a valid birthdate.'));
+                }
+            }
+        });
+    }
+
     protected function prepareForValidation(): void
     {
         if ($this->has('first_name')) {
-            $this->merge(['first_name' => strtoupper(trim($this->first_name))]);
+            $this->merge(['first_name' => strtoupper(trim($this->input('first_name')))]);
         }
         if ($this->has('last_name')) {
-            $this->merge(['last_name' => strtoupper(trim($this->last_name))]);
+            $this->merge(['last_name' => strtoupper(trim($this->input('last_name')))]);
         }
         if ($this->has('middle_name')) {
-            $this->merge(['middle_name' => $this->middle_name ? strtoupper(trim($this->middle_name)) : null]);
+            $this->merge(['middle_name' => $this->input('middle_name') ? strtoupper(trim($this->input('middle_name'))) : null]);
         }
         if ($this->has('suffix')) {
-            $this->merge(['suffix' => $this->suffix ? strtoupper(trim($this->suffix)) : null]);
+            $this->merge(['suffix' => $this->input('suffix') ? strtoupper(trim($this->input('suffix'))) : null]);
         }
         if ($this->has('nationality')) {
-            $this->merge(['nationality' => $this->nationality ? strtoupper(trim($this->nationality)) : null]);
+            $this->merge(['nationality' => $this->input('nationality') ? strtoupper(trim($this->input('nationality'))) : null]);
         }
         if ($this->has('occupation')) {
-            $this->merge(['occupation' => $this->occupation ? strtoupper(trim($this->occupation)) : null]);
+            $this->merge(['occupation' => $this->input('occupation') ? strtoupper(trim($this->input('occupation'))) : null]);
         }
         if ($this->has('building_no')) {
-            $this->merge(['building_no' => $this->building_no ? strtoupper(trim($this->building_no)) : null]);
+            $this->merge(['building_no' => $this->input('building_no') ? strtoupper(trim($this->input('building_no'))) : null]);
         }
         if ($this->has('unit_no')) {
-            $this->merge(['unit_no' => $this->unit_no ? strtoupper(trim($this->unit_no)) : null]);
+            $this->merge(['unit_no' => $this->input('unit_no') ? strtoupper(trim($this->input('unit_no'))) : null]);
         }
         if ($this->has('tracking_number')) {
-            $this->merge(['tracking_number' => strtoupper(trim($this->tracking_number))]);
+            $this->merge(['tracking_number' => strtoupper(trim($this->input('tracking_number')))]);
         }
         if ($this->has('street')) {
-            $this->merge(['street' => $this->street ? strtoupper(trim($this->street)) : null]);
+            $this->merge(['street' => $this->input('street') ? strtoupper(trim($this->input('street'))) : null]);
         }
         if ($this->has('road')) {
-            $this->merge(['road' => $this->road ? strtoupper(trim($this->road)) : null]);
+            $this->merge(['road' => $this->input('road') ? strtoupper(trim($this->input('road'))) : null]);
         }
         if ($this->has('barangay')) {
-            $this->merge(['barangay' => $this->barangay ? strtoupper(trim($this->barangay)) : null]);
+            $this->merge(['barangay' => $this->input('barangay') ? strtoupper(trim($this->input('barangay'))) : null]);
         }
         if ($this->has('purok')) {
-            $this->merge(['purok' => $this->purok ? strtoupper(trim($this->purok)) : null]);
+            $this->merge(['purok' => $this->input('purok') ? strtoupper(trim($this->input('purok'))) : null]);
         }
         if ($this->has('subdivision')) {
-            $this->merge(['subdivision' => $this->subdivision ? strtoupper(trim($this->subdivision)) : null]);
+            $this->merge(['subdivision' => $this->input('subdivision') ? strtoupper(trim($this->input('subdivision'))) : null]);
         }
         if ($this->has('place_of_birth')) {
-            $this->merge(['place_of_birth' => $this->place_of_birth ? strtoupper(trim($this->place_of_birth)) : null]);
+            $this->merge(['place_of_birth' => $this->input('place_of_birth') ? strtoupper(trim($this->input('place_of_birth'))) : null]);
+        }
+        if ($this->has('person_status')) {
+            $this->merge(['person_status' => $this->input('person_status') ?: null]);
+        }
+        if ($this->has('middle_name_none')) {
+            $this->merge(['middle_name_none' => (bool) $this->input('middle_name_none')]);
+        }
+        if ($this->has('is_pregnant')) {
+            $this->merge(['is_pregnant' => (bool) $this->input('is_pregnant')]);
         }
     }
 }

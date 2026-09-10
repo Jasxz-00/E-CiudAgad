@@ -28,4 +28,14 @@ class Concern extends Model
     {
         return $this->belongsTo(Resident::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'subject');
+    }
 }

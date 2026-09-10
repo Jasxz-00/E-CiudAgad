@@ -11,6 +11,7 @@
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3",
         "maatwebsite/excel": "^3.1",
+        "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-permission": "^8.0"
     },
     "require-dev": {

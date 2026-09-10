@@ -19,9 +19,16 @@ class DashboardController extends Controller
 
         $pendingOnqueue = DocumentRequest::whereIn('status', ['pending', 'reviewing'])->count();
 
-        $avgProcessTime = DocumentRequest::whereNotNull('completed_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, completed_at)) as avg_hours')
-            ->value('avg_hours');
+        $avgProcessTime = null;
+        DocumentRequest::whereNotNull('completed_at')
+            ->whereDate('created_at', '>=', now()->subMonths(6))
+            ->get(['created_at', 'completed_at'])
+            ->whenNotEmpty(function ($completed) use (&$avgProcessTime) {
+                $avgSeconds = $completed->avg(
+                    fn ($r) => (int) $r->completed_at->diffInSeconds($r->created_at)
+                );
+                $avgProcessTime = round($avgSeconds / 3600, 1);
+            });
 
         $dailyRequests = DocumentRequest::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->whereDate('created_at', '>=', now()->subDays(29))

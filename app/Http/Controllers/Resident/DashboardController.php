@@ -11,6 +11,7 @@ use App\Models\Announcement;
 use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\RequestPurpose;
+use App\Services\ControlNumberService;
 use App\Services\NotificationService;
 use App\Services\WFQService;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -279,17 +280,34 @@ class DashboardController extends Controller
 
     protected function createDocumentRequest($resident, array $validated)
     {
-        for ($attempt = 1; $attempt <= 3; $attempt++) {
+        $controlNumberService = app(ControlNumberService::class);
+        $queueNumber = '';
+
+        for ($attempt = 1; $attempt <= 4; $attempt++) {
+            $controlNumber = $controlNumberService->generateControlNumber();
+
             try {
+                if (! $queueNumber) {
+                    $queueNumber = $this->wFQService->generateQueueNumber();
+                }
+                $qrCode = $controlNumberService->generateQrCodePath($controlNumber);
+
                 return $resident->documentRequests()->create([
-                    'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'control_number' => $controlNumber,
+                    'queue_number' => $queueNumber,
+                    'qr_code' => $qrCode,
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,
                     'status' => 'pending',
+                    'processing_fee' => 0.00,
+                    'expires_at' => now()->addDays(30),
                 ]);
             } catch (UniqueConstraintViolationException $e) {
-                if ($attempt === 3 || ! $this->wFQService->isQueueNumberCollision($e)) {
+                $queueCollision = $this->wFQService->isQueueNumberCollision($e);
+                $controlCollision = str_contains($e->getMessage(), 'document_requests_control_number_unique');
+
+                if ($attempt === 4 || (! $queueCollision && ! $controlCollision)) {
                     throw $e;
                 }
             }

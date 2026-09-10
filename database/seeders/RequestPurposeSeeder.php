@@ -10,15 +10,17 @@ class RequestPurposeSeeder extends Seeder
     public function run(): void
     {
         $purposes = [
-            ['name' => 'Medical Purposes', 'code' => 'MEDICAL', 'description' => 'For medical consultations, hospital requirements, or health-related needs.', 'priority_weight' => 3.00],
-            ['name' => 'Emergency Purposes', 'code' => 'EMERGENCY', 'description' => 'For urgent and emergency situations requiring immediate documentation.', 'priority_weight' => 3.00],
-            ['name' => 'Employment', 'code' => 'EMPLOYMENT', 'description' => 'For local or overseas employment requirements.', 'priority_weight' => 2.00],
-            ['name' => 'Scholarship', 'code' => 'SCHOLARSHIP', 'description' => 'For educational scholarship applications.', 'priority_weight' => 2.00],
-            ['name' => 'Government Requirement', 'code' => 'GOVT_REQ', 'description' => 'For government agency requirements and transactions.', 'priority_weight' => 1.50],
-            ['name' => 'Loan Application', 'code' => 'LOAN', 'description' => 'For financial loan applications from banks or institutions.', 'priority_weight' => 1.50],
-            ['name' => 'Business Requirement', 'code' => 'BUSINESS', 'description' => 'For business registration, permits, or related needs.', 'priority_weight' => 1.00],
-            ['name' => 'Personal Use', 'code' => 'PERSONAL', 'description' => 'For personal reasons not covered by other categories.', 'priority_weight' => 1.00],
-            ['name' => 'Others', 'code' => 'OTHERS', 'description' => 'Other purposes not listed above.', 'priority_weight' => 0.50],
+            ['name' => 'Medical Assistance', 'code' => 'MEDICAL_ASSISTANCE', 'priority_weight' => 3.00],
+            ['name' => 'Financial Assistance', 'code' => 'FINANCIAL_ASSISTANCE', 'priority_weight' => 3.00],
+            ['name' => 'Enrollment', 'code' => 'ENROLLMENT', 'priority_weight' => 2.00],
+            ['name' => 'Scholarship', 'code' => 'SCHOLARSHIP', 'priority_weight' => 2.00],
+            ['name' => 'Voucher', 'code' => 'VOUCHER', 'priority_weight' => 2.00],
+            ['name' => 'Local Employment', 'code' => 'LOCAL_EMPLOYMENT', 'priority_weight' => 2.00],
+            ['name' => 'NBI Requirement', 'code' => 'NBI_REQUIREMENT', 'priority_weight' => 1.50],
+            ['name' => 'Police Clearance Requirement', 'code' => 'POLICE_CLEARANCE', 'priority_weight' => 1.50],
+            ['name' => 'Postal ID Requirement', 'code' => 'POSTAL_ID', 'priority_weight' => 1.50],
+            ['name' => 'Bank/Loan Requirement', 'code' => 'BANK_LOAN', 'priority_weight' => 1.50],
+            ['name' => 'Marriage Requirement', 'code' => 'MARRIAGE', 'priority_weight' => 2.00],
         ];
 
         foreach ($purposes as $purpose) {

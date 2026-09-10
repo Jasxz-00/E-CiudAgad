@@ -5,16 +5,20 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterResidentRequest;
 use App\Models\DocumentType;
+use App\Models\DocumentRequest;
 use App\Models\DuplicateClaim;
 use App\Models\PersonnelRegistration;
 use App\Models\RequestPurpose;
 use App\Models\Resident;
 use App\Models\User;
 use App\Services\AgeService;
+use App\Services\ControlNumberService;
 use App\Services\CredentialService;
 use App\Services\FileService;
 use App\Services\WFQService;
+use Illuminate\Support\Str;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +26,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -34,20 +37,24 @@ class RegisterController extends Controller
 
     protected WFQService $wFQService;
 
+    protected ControlNumberService $controlNumberService;
+
     public function __construct()
     {
         $this->ageService = new AgeService;
         $this->credentialService = new CredentialService;
         $this->fileService = new FileService;
         $this->wFQService = new WFQService;
+        $this->controlNumberService = new ControlNumberService;
     }
 
     public function showRegistrationForm()
     {
         return view('auth.register', [
             'documentTypes' => DocumentType::where('is_active', true)->get(),
-            'requestPurposes' => RequestPurpose::where('is_active', true)->where('code', '!=', 'OTHERS')->get(),
-            'othersPurpose' => RequestPurpose::where('code', 'OTHERS')->first(),
+            'purposes' => RequestPurpose::where('is_active', true)->get(),
+            'certResidencyId' => DocumentType::where('code', 'CERT_RESIDENCY')->value('id'),
+            'documentTypeCodeMap' => json_encode(DocumentType::pluck('id', 'code')),
             'translations' => [
                 'en' => __('registration', [], 'en'),
                 'fil' => __('registration', [], 'fil'),
@@ -93,6 +100,13 @@ class RegisterController extends Controller
                 return response()->json(['errors' => ['person_status' => ['Pregnant status is only applicable for female residents.']]], 422);
             }
             throw ValidationException::withMessages(['person_status' => 'Pregnant status is only applicable for female residents.']);
+        }
+
+        if (! empty($validated['is_pregnant']) && $validated['gender'] !== 'female') {
+            if ($request->expectsJson()) {
+                return response()->json(['errors' => ['is_pregnant' => ['Pregnant status is only applicable for female residents.']]], 422);
+            }
+            throw ValidationException::withMessages(['is_pregnant' => 'Pregnant status is only applicable for female residents.']);
         }
 
         $statusVerificationPath = null;
@@ -152,8 +166,12 @@ class RegisterController extends Controller
             }
         }
 
+        $idFilePath = null;
+        $idBackFilePath = null;
+        $id1x1Path = null;
         $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan_front'));
         $idBackFilePath = $this->fileService->uploadIdBack($request->file('id_scan_back'));
+        $id1x1Path = $this->fileService->uploadIdFile($request->file('id_1x1'));
 
         DB::beginTransaction();
         try {
@@ -178,6 +196,7 @@ class RegisterController extends Controller
                 'first_name' => strtoupper($validated['first_name']),
                 'last_name' => strtoupper($validated['last_name']),
                 'middle_name' => $validated['middle_name'] ?? null ? strtoupper($validated['middle_name']) : null,
+                'middle_name_none' => $validated['middle_name_none'] ?? false,
                 'suffix' => $validated['suffix'] ?? null ? strtoupper($validated['suffix']) : null,
                 'birthdate' => $birthdate,
                 'age' => $age,
@@ -187,7 +206,7 @@ class RegisterController extends Controller
                 'occupation' => $validated['occupation'] ?? null,
                 'religion' => $validated['religion'] ?? null,
                 'place_of_birth' => $validated['place_of_birth'] ?? null,
-                'person_status' => $personStatus,
+                'person_status' => $personStatus ?: null,
                 'status_verification_photo' => $statusVerificationPath,
                 'building_no' => $validated['building_no'] ?? null ? strtoupper($validated['building_no']) : null,
                 'unit_no' => $validated['unit_no'] ?? null ? strtoupper($validated['unit_no']) : null,
@@ -203,6 +222,7 @@ class RegisterController extends Controller
                 'zip_code' => '4102',
                 'category' => $category,
                 'category_remarks' => $category === 'pwd' ? 'Pending disability verification' : null,
+                'is_pregnant' => ! empty($validated['is_pregnant']) ? 1 : 0,
             ]);
 
             $resident->idVerifications()->create([
@@ -213,6 +233,9 @@ class RegisterController extends Controller
                 'back_file_path' => $idBackFilePath,
                 'back_file_type' => $request->file('id_scan_back')->getClientOriginalExtension(),
                 'back_file_size' => $request->file('id_scan_back')->getSize(),
+                'id_1x1_path' => $id1x1Path,
+                'id_1x1_type' => $request->file('id_1x1')->getClientOriginalExtension(),
+                'id_1x1_size' => $request->file('id_1x1')->getSize(),
             ]);
 
             $documentRequest = $this->createDocumentRequest($resident, $validated);
@@ -241,7 +264,46 @@ class RegisterController extends Controller
                 session(['last_submission_id' => $submissionId]);
             }
 
-            if ($request->expectsJson()) {
+if ($request->expectsJson()) {
+                    if (! $assistedMode) {
+                        Auth::login($user);
+
+                        session()->flash('credentials', [
+                            'tracking_number' => $trackingNumber,
+                            'pin' => $pin,
+                            'email' => $email,
+                            'queue_number' => $documentRequest->queue_number,
+                            'control_number' => $documentRequest->control_number,
+                            'qr_code' => $documentRequest->qr_code,
+                        ]);
+
+                        $payload = [
+                            'success' => true,
+                            'redirect' => route('request.show', ['control_number' => $documentRequest->control_number]),
+                            'credentials' => [
+                                'tracking_number' => $trackingNumber,
+                                'pin' => $pin,
+                                'email' => $email,
+                                'queue_number' => $documentRequest->queue_number,
+                                'control_number' => $documentRequest->control_number,
+                                'qr_code' => $documentRequest->qr_code,
+                            ],
+                        ];
+                    } else {
+                        $payload = [
+                            'success' => true,
+                            'message' => "Resident registered successfully via assisted mode. Tracking #: {$trackingNumber}",
+                            'redirect' => route('login'),
+                        ];
+                    }
+
+                    if ($submissionId) {
+                        session(['last_submission_response' => $payload]);
+                    }
+
+                    return response()->json($payload);
+                }
+
                 if (! $assistedMode) {
                     Auth::login($user);
 
@@ -250,45 +312,12 @@ class RegisterController extends Controller
                         'pin' => $pin,
                         'email' => $email,
                         'queue_number' => $documentRequest->queue_number,
+                        'control_number' => $documentRequest->control_number,
+                        'qr_code' => $documentRequest->qr_code,
                     ]);
 
-                    $payload = [
-                        'success' => true,
-                        'redirect' => route('resident.dashboard'),
-                        'credentials' => [
-                            'tracking_number' => $trackingNumber,
-                            'pin' => $pin,
-                            'email' => $email,
-                            'queue_number' => $documentRequest->queue_number,
-                        ],
-                    ];
-                } else {
-                    $payload = [
-                        'success' => true,
-                        'message' => "Resident registered successfully via assisted mode. Tracking #: {$trackingNumber}",
-                        'redirect' => route('login'),
-                    ];
+                    return redirect()->route('request.show', ['control_number' => $documentRequest->control_number]);
                 }
-
-                if ($submissionId) {
-                    session(['last_submission_response' => $payload]);
-                }
-
-                return response()->json($payload);
-            }
-
-            if (! $assistedMode) {
-                Auth::login($user);
-
-                session()->flash('credentials', [
-                    'tracking_number' => $trackingNumber,
-                    'pin' => $pin,
-                    'email' => $email,
-                    'queue_number' => $documentRequest->queue_number,
-                ]);
-
-                return redirect()->route('resident.dashboard');
-            }
 
             return redirect()->route('login')
                 ->with('success', "Resident registered successfully via assisted mode. Tracking #: {$trackingNumber}");
@@ -300,6 +329,9 @@ class RegisterController extends Controller
             }
             if ($idBackFilePath) {
                 $this->fileService->deleteFile($idBackFilePath);
+            }
+            if ($id1x1Path) {
+                $this->fileService->deleteFile($id1x1Path);
             }
             if ($statusVerificationPath) {
                 $this->fileService->deleteFile($statusVerificationPath);
@@ -320,17 +352,32 @@ class RegisterController extends Controller
 
     protected function createDocumentRequest(Resident $resident, array $validated)
     {
-        for ($attempt = 1; $attempt <= 3; $attempt++) {
+        $queueNumber = '';
+
+        for ($attempt = 1; $attempt <= 4; $attempt++) {
+            $controlNumber = $this->controlNumberService->generateControlNumber();
+
             try {
+                if (! $queueNumber) {
+                    $queueNumber = $this->wFQService->generateQueueNumber();
+                }
+                $qrCode = $this->controlNumberService->generateQrCodePath($controlNumber);
                 return $resident->documentRequests()->create([
-                    'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'control_number' => $controlNumber,
+                    'queue_number' => $queueNumber,
+                    'qr_code' => $qrCode,
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,
                     'status' => 'pending',
+                    'processing_fee' => 0.00,
+                    'expires_at' => now()->addDays(30),
                 ]);
             } catch (UniqueConstraintViolationException $e) {
-                if ($attempt === 3 || ! $this->wFQService->isQueueNumberCollision($e)) {
+                $queueCollision = $this->wFQService->isQueueNumberCollision($e);
+                $controlCollision = str_contains($e->getMessage(), 'document_requests_control_number_unique');
+
+                if ($attempt === 4 || (! $queueCollision && ! $controlCollision)) {
                     throw $e;
                 }
             }
@@ -364,15 +411,5 @@ class RegisterController extends Controller
 
         return redirect()->route('login')
             ->with('insistence_submitted', true);
-    }
-
-    public function showCredentials(Request $request)
-    {
-        return view('auth.credentials', [
-            'tracking_number' => $request->query('tracking_number'),
-            'pin' => $request->query('pin'),
-            'email' => $request->query('email'),
-            'queue_number' => $request->query('queue_number'),
-        ]);
     }
 }

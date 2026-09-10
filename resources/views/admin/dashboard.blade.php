@@ -48,14 +48,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($recentRequests as $req)
+                        @forelse($recentRequests as $req)
                         <tr class="border-b border-gray-200 dark:border-gray-700">
                             <td class="py-2 font-mono">{{ $req->queue_number }}</td>
                             <td class="py-2">{{ $req->resident?->full_name ?? 'N/A' }}</td>
                             <td class="py-2">{{ $req->documentType?->name }}</td>
                             <td class="py-2"><x-badge :status="$req->status" /></td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr><td colspan="4" class="py-4 text-center text-gray-600 dark:text-gray-400">No recent requests.</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
