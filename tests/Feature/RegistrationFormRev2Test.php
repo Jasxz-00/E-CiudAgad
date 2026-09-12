@@ -17,6 +17,7 @@ class RegistrationFormRev2Test extends TestCase
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\RolePermissionSeeder']);
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DocumentTypeSeeder']);
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\RequestPurposeSeeder']);
+        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DocumentTypePurposeSeeder']);
     }
 
     private function createTestIdImage(): UploadedFile
@@ -172,6 +173,7 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -239,6 +241,7 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -290,6 +293,7 @@ class RegistrationFormRev2Test extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -334,6 +338,7 @@ class RegistrationFormRev2Test extends TestCase
             'contact_number' => '0912-345-6789',
             'emergency_contact' => '0998-765-4321',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -353,7 +358,7 @@ class RegistrationFormRev2Test extends TestCase
         $response->assertJsonStructure(['errors' => ['birthdate_day']]);
     }
 
-    public function test_registration_without_middle_name_requires_none_checkbox(): void
+    public function test_registration_without_middle_name_succeeds_without_checkbox(): void
     {
         $idFile = $this->createTestIdImage();
 
@@ -376,6 +381,7 @@ class RegistrationFormRev2Test extends TestCase
             'contact_number' => '0912-345-6789',
             'emergency_contact' => '0998-765-4321',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
@@ -391,8 +397,8 @@ class RegistrationFormRev2Test extends TestCase
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonStructure(['errors' => ['middle_name']]);
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
     }
 
     public function test_pregnant_category_only_allowed_for_female(): void
@@ -412,20 +418,21 @@ class RegistrationFormRev2Test extends TestCase
             'gender' => 'male',
             'civil_status' => 'single',
             'place_of_birth' => 'BACOOR CITY, CAVITE',
-            'person_status' => '',
+            'person_status' => 'pregnant',
             'street' => 'M.H. DEL PILAR ST',
             'barangay' => 'MOLINO I',
             'contact_number' => '0912-345-6789',
             'emergency_contact' => '0998-765-4321',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',
             'assisted_mode' => '0',
-            'is_pregnant' => '1',
             'id_scan_front' => $idFile,
             'id_scan_back' => $idFile,
             'id_1x1' => $idFile,
+            'status_verification_photo' => $idFile,
         ];
 
         $response = $this->post(route('register'), $data, [
@@ -434,6 +441,6 @@ class RegistrationFormRev2Test extends TestCase
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonStructure(['errors' => ['is_pregnant']]);
+        $response->assertJsonStructure(['errors' => ['person_status']]);
     }
 }

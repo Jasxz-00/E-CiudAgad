@@ -26,10 +26,21 @@
                     <p class="text-xs text-gray-600 dark:text-gray-400">{{ __('common.status') }}</p>
                     <p class="text-lg font-medium capitalize"><x-badge :status="$documentRequest->status" /></p>
                 </div>
-                @if($documentRequest->qr_code)
+                @if($documentRequest->service_date)
+                <div class="p-4 bg-gray-50 dark:bg-gray-950 rounded-xl">
+                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ __('registration.processing_date') }}</p>
+                    <p class="text-lg font-bold text-primary-700 dark:text-primary-400">{{ $documentRequest->service_date->format('M d, Y') }}</p>
+                </div>
+                @endif
+                @if($documentRequest->scheduled_after_cutoff)
+                <div class="p-4 bg-accent-50 dark:bg-accent-900/20 rounded-xl">
+                    <p class="text-sm font-medium text-accent-700 dark:text-accent-300">{{ __('registration.scheduled_after_cutoff') }}</p>
+                </div>
+                @endif
+                @if($documentRequest->qr_code && $documentRequest->verification_token)
                     <div class="text-center">
                         <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">{{ __('registration.qr_code_label') }}</p>
-                        {!! QrCode::size(200)->generate($documentRequest->control_number) !!}
+                        {!! QrCode::size(200)->generate(route('verification.show', ['token' => $documentRequest->verification_token])) !!}
                     </div>
                 @endif
             </div>

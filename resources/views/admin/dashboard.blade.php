@@ -6,76 +6,105 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Admin Dashboard</h1>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
-        <x-stats-card label="Total Residents" :value="$stats['total_residents']" color="primary" icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        <x-stats-card label="Requests This Month" :value="$stats['requests_per_month']" color="blue" icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        <x-stats-card label="Pending & On-Queue" :value="$stats['pending_onqueue']" color="yellow" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        <x-stats-card label="Avg. Process Time" :value="$stats['avg_process_time'] . ' hrs'" color="green" icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-    </div>
+    <table class="w-full text-sm mb-8">
+        <thead>
+            <tr class="text-left text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                <th class="pb-3 font-medium">Metric</th>
+                <th class="pb-3 font-medium">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+                <td class="py-3">Total Residents</td>
+                <td class="py-3 font-bold">{{ $stats['total_residents'] }}</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+                <td class="py-3">Requests This Month</td>
+                <td class="py-3 font-bold">{{ $stats['requests_per_month'] }}</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+                <td class="py-3">Pending & On-Queue</td>
+                <td class="py-3 font-bold">{{ $stats['pending_onqueue'] }}</td>
+            </tr>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+                <td class="py-3">Avg. Process Time</td>
+                <td class="py-3 font-bold">{{ $stats['avg_process_time'] }} hrs</td>
+            </tr>
+        </tbody>
+    </table>
 
-    <x-card class="mb-6">
+    <div class="card mb-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Daily Requests (Last 30 Days)</h2>
         <div class="relative h-64 sm:h-80"><canvas id="dailyChart"></canvas></div>
-    </x-card>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <x-card>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Requests by Resident Category</h2>
-            <div class="relative h-64 sm:h-72"><canvas id="categoryChart"></canvas></div>
-        </x-card>
-        <x-card>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Requests by Document Type</h2>
-            <div class="relative h-64 sm:h-72"><canvas id="documentChart"></canvas></div>
-        </x-card>
     </div>
 
-    <x-card class="mb-6">
+    <div class="card mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Requests by Resident Category</h2>
+        <div class="relative h-64 sm:h-72"><canvas id="categoryChart"></canvas></div>
+    </div>
+
+    <div class="card mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Requests by Document Type</h2>
+        <div class="relative h-64 sm:h-72"><canvas id="documentChart"></canvas></div>
+    </div>
+
+    <div class="card mb-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Requests by Purpose</h2>
         <div class="relative h-64 sm:h-72"><canvas id="purposeChart"></canvas></div>
-    </x-card>
+    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <x-card>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Requests</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                            <th class="pb-2 font-medium">Queue</th>
-                            <th class="pb-2 font-medium">Resident</th>
-                            <th class="pb-2 font-medium">Document</th>
-                            <th class="pb-2 font-medium">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentRequests as $req)
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <td class="py-2 font-mono">{{ $req->queue_number }}</td>
-                            <td class="py-2">{{ $req->resident?->full_name ?? 'N/A' }}</td>
-                            <td class="py-2">{{ $req->documentType?->name }}</td>
-                            <td class="py-2"><x-badge :status="$req->status" /></td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="4" class="py-4 text-center text-gray-600 dark:text-gray-400">No recent requests.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
+    <div class="card mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Requests</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        <th class="pb-3 font-medium">Queue</th>
+                        <th class="pb-3 font-medium">Resident</th>
+                        <th class="pb-3 font-medium">Document</th>
+                        <th class="pb-3 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentRequests as $req)
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <td class="py-3 font-mono">{{ $req->queue_number }}</td>
+                        <td class="py-3">{{ $req->resident?->full_name ?? 'N/A' }}</td>
+                        <td class="py-3">{{ $req->documentType?->name }}</td>
+                        <td class="py-3"><x-badge :status="$req->status" /></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="4" class="py-4 text-center text-gray-600 dark:text-gray-400">No recent requests.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        <x-card>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h2>
-            <div class="space-y-2 text-sm">
-                @forelse($recentLogs as $log)
-                    <div class="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
-                        <p><span class="font-medium">{{ $log->user?->username ?? 'System' }}</span> {{ $log->description }}</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
-                    </div>
-                @empty
-                    <p class="text-gray-600 dark:text-gray-400 text-center py-4">No recent activity.</p>
-                @endforelse
-            </div>
-        </x-card>
+    <div class="card">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Activity</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        <th class="pb-3 font-medium">User</th>
+                        <th class="pb-3 font-medium">Description</th>
+                        <th class="pb-3 font-medium">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentLogs as $log)
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <td class="py-3">{{ $log->user?->username ?? 'System' }}</td>
+                        <td class="py-3">{{ $log->description }}</td>
+                        <td class="py-3 text-xs text-gray-600 dark:text-gray-400">{{ $log->created_at->diffForHumans() }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3" class="py-4 text-center text-gray-600 dark:text-gray-400">No recent activity.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 @endsection

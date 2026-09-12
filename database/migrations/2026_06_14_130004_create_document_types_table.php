@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('complexity')->default('simple'); // simple, moderate, complex
             $table->decimal('complexity_weight', 5, 2)->default(1.00);
-            $table->decimal('processing_fee', 10, 2)->default(0.00);
+
             $table->boolean('requires_attachments')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

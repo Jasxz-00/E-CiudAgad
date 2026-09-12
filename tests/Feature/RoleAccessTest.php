@@ -24,7 +24,7 @@ class RoleAccessTest extends TestCase
 
         DocumentType::firstOrCreate(
             ['code' => 'BRGY_CLEARANCE'],
-            ['name' => 'Barangay Clearance', 'code' => 'BRGY_CLEARANCE', 'processing_fee' => 0.00, 'is_active' => true]
+            ['name' => 'Barangay Clearance', 'code' => 'BRGY_CLEARANCE', 'is_active' => true]
         );
         RequestPurpose::firstOrCreate(
             ['code' => 'POLICE_CLEARANCE'],

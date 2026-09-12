@@ -86,6 +86,20 @@ class RequestController extends Controller
         return view('personnel.requests', compact('requests', 'stats'));
     }
 
+    public function getOrderedActiveQueue()
+    {
+        return DocumentRequest::query()
+            ->whereIn('status', [
+                'approved',
+                'queued',
+            ])
+            ->whereNotNull('virtual_finish_time')
+            ->orderBy('virtual_finish_time', 'asc')
+            ->orderBy('eligible_at', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+    }
+
     public function show($id)
     {
         $request = DocumentRequest::with(['resident.user', 'resident.idVerifications', 'documentType', 'purpose', 'documents', 'processedBy'])

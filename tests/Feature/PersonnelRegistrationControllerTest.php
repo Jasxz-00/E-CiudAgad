@@ -21,6 +21,7 @@ class PersonnelRegistrationControllerTest extends TestCase
         $this->artisan('db:seed', ['--class' => 'Database\Seeders\RolePermissionSeeder']);
         $this->artisan('db:seed', ['--class' => 'Database\Seeders\DocumentTypeSeeder']);
         $this->artisan('db:seed', ['--class' => 'Database\Seeders\RequestPurposeSeeder']);
+        $this->artisan('db:seed', ['--class' => 'Database\Seeders\DocumentTypePurposeSeeder']);
     }
 
     public function test_create_page_loads(): void
@@ -71,7 +72,7 @@ class PersonnelRegistrationControllerTest extends TestCase
         $response->assertSessionHasErrors([
             'first_name', 'last_name', 'contact_number',
             'emergency_contact', 'id_type', 'id_scan_front', 'id_scan_back', 'id_1x1',
-            'document_type_id', 'purpose_id',
+            'document_type_id', 'purpose_id', 'proof_type',
         ]);
     }
 
@@ -184,9 +185,12 @@ class PersonnelRegistrationControllerTest extends TestCase
             'id_scan_front' => $this->createTestIdImage(),
             'id_scan_back' => $this->createTestIdImage(),
             'id_1x1' => $this->createTestIdImage(),
+            'proof_type' => 'valid_id',
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'privacy_consent' => 1,
+            'assisted_mode' => '1',
+            'staff_badge' => 'P-001',
             'barangay' => 'MOLINO I',
             'street' => 'M.H. DEL PILAR ST',
             'road' => 'MOLINO ROAD',

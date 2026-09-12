@@ -45,7 +45,7 @@
     </x-card>
 
     <x-card :padding="false">
-        <x-table :headers="['Date Issued', 'Resident', 'Document', 'Purpose', 'Category', 'Queue #', 'Weight', 'Status', 'Actions']">
+        <x-table :headers="['Date Issued', 'Resident', 'Document', 'Purpose', 'Category', 'Queue #', 'Status', 'Actions']">
             @forelse($requests as $req)
             <tr>
                 <td class="text-gray-600 dark:text-gray-400">{{ $req->created_at->format('M d, Y') }}</td>
@@ -54,7 +54,6 @@
                 <td>{{ $req->purpose?->name ?? $req->purpose_other }}</td>
                 <td class="capitalize">{{ $req->resident?->category ?? '-' }}</td>
                 <td class="font-mono">{{ $req->queue_number }}</td>
-                <td>{{ number_format((float) $req->total_weight, 2) }}</td>
                 <td><x-badge :status="$req->status" /></td>
                 <td><a href="{{ route('admin.requests.show', $req->id) }}" class="text-primary-700 dark:text-primary-400 hover:underline text-sm inline-flex items-center min-h-[36px]">View</a></td>
             </tr>

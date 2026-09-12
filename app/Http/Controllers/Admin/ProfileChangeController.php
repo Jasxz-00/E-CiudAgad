@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\ProfileChangeRequest;
 use App\Models\Resident;
 use App\Notifications\ProfileChangeNotification;
+use App\Services\WFQService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,9 +43,35 @@ class ProfileChangeController extends Controller
         }
 
         DB::transaction(function () use ($change) {
-            $change->resident->update($change->new_data['resident'] ?? []);
+            $oldCategory = $change->resident->category ?? null;
+            $residentData = $change->new_data['resident'] ?? [];
+
+            $change->resident->update($residentData);
             if (! empty($change->new_data['email'])) {
                 $change->user->update(['email' => $change->new_data['email']]);
+            }
+
+            $newCategory = $residentData['category'] ?? $oldCategory;
+            $oldValues = ['category' => $oldCategory];
+
+            if ($newCategory !== $oldCategory) {
+                $change->resident->update(['category' => $newCategory]);
+
+                AuditLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'resident_category_updated',
+                    'subject_type' => Resident::class,
+                    'subject_id' => $change->resident_id,
+                    'description' => 'Resident category changed from '.($oldCategory ?: 'none').' to '.$newCategory.' via profile change approval.',
+                    'old_values' => $oldValues,
+                    'new_values' => ['category' => $newCategory],
+                ]);
+
+                $wfq = new WFQService;
+                $change->resident->documentRequests()
+                    ->whereIn('status', ['pending', 'reviewing'])
+                    ->get()
+                    ->each(fn ($request) => $wfq->enqueue($request));
             }
 
             $change->update([

@@ -58,9 +58,9 @@ class WFQServiceTest extends TestCase
         $senior = $this->makeResident('senior');
         $regular = $this->makeResident('regular');
 
-        $seniorMedical = $this->wfq->calculateWeight($senior, $docType, $medical);
-        $regularMedical = $this->wfq->calculateWeight($regular, $docType, $medical);
-        $regularEnrollment = $this->wfq->calculateWeight($regular, $docType, $enrollment);
+        $seniorMedical = $this->wfq->calculateWeight($senior, $medical);
+        $regularMedical = $this->wfq->calculateWeight($regular, $medical);
+        $regularEnrollment = $this->wfq->calculateWeight($regular, $enrollment);
 
         $this->assertGreaterThan($regularMedical, $seniorMedical);
         $this->assertGreaterThan($regularEnrollment, $regularMedical);
@@ -82,6 +82,7 @@ class WFQServiceTest extends TestCase
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'status' => 'pending',
+            'service_date' => now()->toDateString(),
             'total_weight' => 0.00,
             'virtual_finish_time' => 0.000000,
         ]);
@@ -94,6 +95,7 @@ class WFQServiceTest extends TestCase
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'status' => 'pending',
+            'service_date' => now()->toDateString(),
             'total_weight' => 0.00,
             'virtual_finish_time' => 0.000000,
         ]);
@@ -128,6 +130,7 @@ class WFQServiceTest extends TestCase
                 'document_type_id' => $docType->id,
                 'purpose_id' => $purpose->id,
                 'status' => 'pending',
+                'service_date' => now()->toDateString(),
                 'total_weight' => 0.00,
                 'virtual_finish_time' => 0.000000,
             ]);
@@ -156,6 +159,7 @@ class WFQServiceTest extends TestCase
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'status' => 'pending',
+            'service_date' => now()->toDateString(),
             'total_weight' => 0.00,
             'virtual_finish_time' => 0.000000,
         ]);
@@ -168,6 +172,7 @@ class WFQServiceTest extends TestCase
             'document_type_id' => $docType->id,
             'purpose_id' => $purpose->id,
             'status' => 'pending',
+            'service_date' => now()->toDateString(),
             'total_weight' => 0.00,
             'virtual_finish_time' => 0.000000,
         ]);
@@ -181,6 +186,7 @@ class WFQServiceTest extends TestCase
         $this->actingAs($personnel)
             ->get(route('queue.monitor'))
             ->assertOk()
-            ->assertSee('Q-0101');
+            ->assertSee('Q-0101')
+            ->assertSee('Q-0102');
     }
 }

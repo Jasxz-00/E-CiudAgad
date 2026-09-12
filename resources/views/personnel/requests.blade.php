@@ -6,6 +6,14 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ __('common.requests') }}</h1>
+        <a href="{{ route('personnel.dashboard') }}"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-gray-700bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition"> 
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"> 
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /> 
+            </svg>
+
+            Back
+        </a>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -15,7 +23,7 @@
         <div class="card p-4"><p class="text-xs text-gray-600 dark:text-gray-400">{{ __('common.completed') }}</p><p class="text-xl font-bold text-green-600 dark:text-green-400">{{ $stats['completed'] }}</p></div>
     </div>
 
-    <div class="card p-4 mb-6" x-data="filterState()">
+    <div class="card p-4 mb-6" x-data="queueFilterState()">
         <form method="GET" action="{{ route('personnel.requests') }}" @@submit="submitForm">
             <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <div class="flex-1 relative">
@@ -76,7 +84,74 @@
         </form>
     </div>
 
-    <div class="card">
+        <div class="card" x-data="{ activeTab: '{{ request('queue_tab', 'pending-review') }}' }">
+        <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-200 dark:border-gray-700 pb-3 overflow-x-auto">
+            <button type="button" @@click="activeTab='pending-review'"
+                    :class="activeTab === 'pending-review' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Pending Review
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+                    {{ $stats['pending'] ?? \App\Models\DocumentRequest::where('status', 'pending')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='main-queue'"
+                    :class="activeTab === 'main-queue' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Main Queue
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                    {{ $stats['reviewing'] ?? \App\Models\DocumentRequest::where('status', 'reviewing')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='processing'"
+                    :class="activeTab === 'processing' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Processing
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                    {{ \App\Models\DocumentRequest::where('status', 'on_hold')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='on-hold'"
+                    :class="activeTab === 'on-hold' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                On Hold / Needs Correction
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                    {{ \App\Models\DocumentRequest::where('status', 'on_hold')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='ready-pickup'"
+                    :class="activeTab === 'ready-pickup' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Ready for Pickup
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                    {{ $stats['approved'] ?? \App\Models\DocumentRequest::where('status', 'approved')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='completed-released'"
+                    :class="activeTab === 'completed-released' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Completed / Released
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                    {{ (\App\Models\DocumentRequest::where('status', 'completed')->count() + \App\Models\DocumentRequest::where('status', 'released')->count()) }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='rejected'"
+                    :class="activeTab === 'rejected' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Rejected
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                    {{ \App\Models\DocumentRequest::where('status', 'rejected')->count() }}
+                </span>
+            </button>
+            <button type="button" @@click="activeTab='cancelled'"
+                    :class="activeTab === 'cancelled' ? 'tab-btn active' : 'tab-btn'"
+                    class="whitespace-nowrap">
+                Cancelled
+                <span class="inline-block ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                    {{ \App\Models\DocumentRequest::where('status', 'cancelled')->count() }}
+                </span>
+            </button>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -87,28 +162,37 @@
                         <th class="pb-3 font-medium">{{ __('common.document') }}</th>
                         <th class="pb-3 font-medium">{{ __('common.purpose') }}</th>
                         <th class="pb-3 font-medium">{{ __('common.category') }}</th>
-                        <th class="pb-3 font-medium">{{ __('common.weight') }}</th>
                         <th class="pb-3 font-medium">{{ __('common.status') }}</th>
                         <th class="pb-3 font-medium">{{ __('common.action') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($requests as $req)
-                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        x-show="
+                            (activeTab === 'pending-review' && '{{ $req->status }}' === 'pending') ||
+                            (activeTab === 'main-queue' && '{{ $req->status }}' === 'reviewing') ||
+                            (activeTab === 'processing' && '{{ $req->status }}' === 'on_hold') ||
+                            (activeTab === 'on-hold' && '{{ $req->status }}' === 'on_hold') ||
+                            (activeTab === 'ready-pickup' && '{{ $req->status }}' === 'approved') ||
+                            (activeTab === 'completed-released' && ('{{ $req->status }}' === 'completed' || '{{ $req->status }}' === 'released')) ||
+                            (activeTab === 'rejected' && '{{ $req->status }}' === 'rejected') ||
+                            (activeTab === 'cancelled' && '{{ $req->status }}' === 'cancelled')
+                        "
+                        x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0">
                         <td class="py-3 font-mono">{{ $req->queue_number }}</td>
                         <td class="py-3">{{ $req->queue_position ?? '-' }}</td>
                         <td class="py-3">{{ $req->resident?->full_name ?? 'N/A' }}</td>
                         <td class="py-3">{{ $req->documentType?->name }}</td>
                         <td class="py-3">{{ $req->purpose?->name }}</td>
                         <td class="py-3 capitalize">{{ $req->resident?->category ?? 'N/A' }}</td>
-                        <td class="py-3">{{ number_format((float) $req->total_weight, 2) }}</td>
                         <td class="py-3"><span class="badge-{{ $req->status }}">{{ __("common.{$req->status}") }}</span></td>
                         <td class="py-3">
                             <a href="{{ route('personnel.request.show', $req->id) }}" class="text-primary-700 dark:text-primary-400 hover:underline text-sm inline-flex items-center min-h-[36px]">{{ __('common.view') }}</a>
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="9" class="py-8 text-center text-gray-600 dark:text-gray-400">{{ __('common.no_data') }}</td></tr>
+                    <tr><td colspan="8" class="py-8 text-center text-gray-600 dark:text-gray-400">{{ __('common.no_data') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -120,12 +204,13 @@
 
 @push('scripts')
 <script>
-    function filterState() {
+    function queueFilterState() {
         return {
             search: '{{ request('search') }}',
             activePreset: '{{ request('date_preset') }}',
             dateFrom: '{{ request('date_from') }}',
             dateTo: '{{ request('date_to') }}',
+            activeTab: '{{ request('queue_tab', 'pending-review') }}',
             presets: [
                 { value: 'today', label: '{{ __("common.today") }}' },
                 { value: 'this_week', label: '{{ __("common.this_week") }}' },

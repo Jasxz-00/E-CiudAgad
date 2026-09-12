@@ -7,18 +7,20 @@ use App\Http\Requests\SubmitDocumentRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Mail\PinResetConfirmation;
 use App\Mail\ProfileUpdateConfirmation;
-use App\Models\Announcement;
+
 use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\RequestPurpose;
 use App\Services\ControlNumberService;
 use App\Services\NotificationService;
+use App\Services\QueueScheduleService;
 use App\Services\WFQService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
@@ -48,11 +50,6 @@ class DashboardController extends Controller
             ->whereIn('status', ['completed', 'released'])
             ->count();
 
-        $announcements = Announcement::where('is_published', true)
-            ->orderBy('published_at', 'desc')
-            ->take(5)
-            ->get();
-
         $notifications = Auth::user()
             ->notifications()
             ->take(10)
@@ -63,7 +60,6 @@ class DashboardController extends Controller
             'pendingCount',
             'completedCount',
             'resident',
-            'announcements',
             'notifications'
         ));
     }
@@ -234,6 +230,10 @@ class DashboardController extends Controller
         $maxActiveRequests = 2;
         $limitReached = $activeCount >= $maxActiveRequests;
 
+        $queueScheduleService = app(QueueScheduleService::class);
+        $schedule = $queueScheduleService->getActiveSchedule();
+        $queueStatus = $queueScheduleService->queueStatus();
+
         return view('resident.new-request', compact(
             'documentTypes',
             'purposes',
@@ -242,7 +242,9 @@ class DashboardController extends Controller
             'activeCount',
             'activeDocumentTypeIds',
             'maxActiveRequests',
-            'limitReached'
+            'limitReached',
+            'schedule',
+            'queueStatus'
         ));
     }
 
@@ -274,13 +276,20 @@ class DashboardController extends Controller
 
         NotificationService::notifyPersonnelOfNewRequest($documentRequest);
 
+        $message = 'Document request submitted successfully. Your queue number is '.$documentRequest->queue_number;
+
+        if ($documentRequest->scheduled_after_cutoff) {
+            $message .= '. Your request is scheduled for processing on '.$documentRequest->service_date?->format('M d, Y').'.';
+        }
+
         return redirect()->route('resident.requests')
-            ->with('success', 'Document request submitted successfully. Your queue number is '.$documentRequest->queue_number);
+            ->with('success', $message);
     }
 
     protected function createDocumentRequest($resident, array $validated)
     {
         $controlNumberService = app(ControlNumberService::class);
+        $scheduleService = app(QueueScheduleService::class);
         $queueNumber = '';
 
         for ($attempt = 1; $attempt <= 4; $attempt++) {
@@ -290,17 +299,21 @@ class DashboardController extends Controller
                 if (! $queueNumber) {
                     $queueNumber = $this->wFQService->generateQueueNumber();
                 }
-                $qrCode = $controlNumberService->generateQrCodePath($controlNumber);
+                $verificationToken = Str::random(32);
+                $qrCode = $controlNumberService->generateQrCodePath($verificationToken);
+                $assignment = $scheduleService->assignServiceDate();
 
                 return $resident->documentRequests()->create([
                     'control_number' => $controlNumber,
                     'queue_number' => $queueNumber,
                     'qr_code' => $qrCode,
+                    'verification_token' => $verificationToken,
+                    'service_date' => $assignment['service_date'],
+                    'scheduled_after_cutoff' => $assignment['scheduled_after_cutoff'],
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,
                     'status' => 'pending',
-                    'processing_fee' => 0.00,
                     'expires_at' => now()->addDays(30),
                 ]);
             } catch (UniqueConstraintViolationException $e) {

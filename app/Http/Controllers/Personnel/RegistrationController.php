@@ -10,13 +10,16 @@ use App\Models\RequestPurpose;
 use App\Models\Resident;
 use App\Models\User;
 use App\Services\AgeService;
+use App\Services\ControlNumberService;
 use App\Services\CredentialService;
 use App\Services\FileService;
+use App\Services\QueueScheduleService;
 use App\Services\WFQService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class RegistrationController extends Controller
@@ -29,12 +32,15 @@ class RegistrationController extends Controller
 
     protected WFQService $wFQService;
 
+    protected ControlNumberService $controlNumberService;
+
     public function __construct()
     {
         $this->ageService = new AgeService;
         $this->credentialService = new CredentialService;
         $this->fileService = new FileService;
         $this->wFQService = new WFQService;
+        $this->controlNumberService = new ControlNumberService;
     }
 
     public function create()
@@ -207,10 +213,19 @@ class RegistrationController extends Controller
 
     protected function createDocumentRequest($resident, array $validated)
     {
+        $scheduleService = app(QueueScheduleService::class);
+
         for ($attempt = 1; $attempt <= 3; $attempt++) {
             try {
+                $verificationToken = Str::random(32);
+                $assignment = $scheduleService->assignServiceDate();
+
                 return $resident->documentRequests()->create([
                     'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'qr_code' => $this->controlNumberService->generateQrCodePath($verificationToken),
+                    'verification_token' => $verificationToken,
+                    'service_date' => $assignment['service_date'],
+                    'scheduled_after_cutoff' => $assignment['scheduled_after_cutoff'],
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,

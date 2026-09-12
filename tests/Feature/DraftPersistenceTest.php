@@ -25,7 +25,6 @@ class DraftPersistenceTest extends TestCase
         $response->assertSee('registration_draft', false);
         $response->assertSee('restoreDraft', false);
         $response->assertSee('saveDraft', false);
-        $response->assertSee('clearForm', false);
     }
 
     public function test_registration_page_contains_local_storage_draft_key(): void
@@ -55,12 +54,13 @@ class DraftPersistenceTest extends TestCase
         $response->assertSee('init()', false);
     }
 
-    public function test_clear_form_button_exists(): void
+    public function test_clear_form_button_does_not_exist(): void
     {
         $response = $this->get(route('register'));
 
         $response->assertStatus(200);
-        $response->assertSee('clearForm', false);
+        $response->assertDontSee('clearForm', false);
+        $response->assertDontSee('Burahin ang Form', false);
     }
 
     public function test_registration_lang_toggle_persists(): void

@@ -55,30 +55,7 @@
         <x-stats-card label="{{ __('common.category') }}" :value="ucfirst($resident->category)" color="yellow" icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <x-card>
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('common.announcements') }}</h2>
-            </div>
-
-            @if($announcements->isEmpty())
-                <x-empty-state
-                    title="{{ __('common.no_announcements') }}"
-                    description="{{ __('common.contact_barangay') }}" />
-            @else
-                <div class="space-y-4">
-                    @foreach($announcements as $announcement)
-                        <div class="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h3 class="font-medium text-gray-900 dark:text-gray-100 text-sm">{{ $announcement->title }}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ Str::limit($announcement->content, 150) }}</p>
-                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-2">{{ $announcement->published_at?->format('M d, Y') ?? $announcement->created_at->format('M d, Y') }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-
-        <x-card>
+    <x-card>
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('common.notifications') }}</h2>
                 <a href="{{ route('notifications.index') }}" class="text-sm text-primary-700 dark:text-primary-400 hover:underline">{{ __('common.view') }}</a>

@@ -123,7 +123,7 @@ class DuplicateClaimController extends Controller
                 'zip_code' => '4102',
                 'category' => $category,
                 'category_remarks' => $category === 'pwd' ? 'Pending disability verification' : null,
-                'is_pregnant' => ! empty($data['is_pregnant']) ? 1 : 0,
+                'is_pregnant' => $personStatus === 'pregnant' ? 1 : 0,
             ]);
 
             if (! empty($data['document_type_id']) && ! empty($data['purpose_id'])) {

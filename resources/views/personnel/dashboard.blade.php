@@ -18,6 +18,44 @@
         <x-stats-card label="Completed Today" :value="$stats['completed_today']" color="green" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </div>
 
+    <div class="card p-4 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Queue Distribution</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div class="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                <span class="badge badge-pending">{{ __('common.pending') }}</span>
+                <span class="font-bold text-yellow-800 dark:text-yellow-300">{{ $stats['pending'] ?? \App\Models\DocumentRequest::where('status', 'pending')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <span class="badge badge-reviewing">{{ __('common.reviewing') }}</span>
+                <span class="font-bold text-blue-800 dark:text-blue-300">{{ $stats['reviewing'] ?? \App\Models\DocumentRequest::where('status', 'reviewing')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                <span class="badge badge-on_hold">{{ __('common.processing') }}</span>
+                <span class="font-bold text-purple-800 dark:text-purple-300">{{ \App\Models\DocumentRequest::where('status', 'on_hold')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                <span class="badge badge-on_hold">{{ __('common.on_hold') }}</span>
+                <span class="font-bold text-amber-800 dark:text-amber-300">{{ \App\Models\DocumentRequest::where('status', 'on_hold')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                <span class="badge badge-approved">{{ __('common.ready_for_pickup') }}</span>
+                <span class="font-bold text-green-800 dark:text-green-300">{{ $stats['approved'] ?? \App\Models\DocumentRequest::where('status', 'approved')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                <span class="badge badge-completed">{{ __('common.completed_released') }}</span>
+                <span class="font-bold text-emerald-800 dark:text-emerald-300">{{ \App\Models\DocumentRequest::whereIn('status', ['completed', 'released'])->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                <span class="badge badge-rejected">{{ __('common.rejected') }}</span>
+                <span class="font-bold text-red-800 dark:text-red-300">{{ \App\Models\DocumentRequest::where('status', 'rejected')->count() }}</span>
+            </div>
+            <div class="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                <span class="badge" style="background-color:#E5E7EB;color:#374151;">{{ __('common.cancelled') }}</span>
+                <span class="font-bold text-gray-700 dark:text-gray-300">{{ \App\Models\DocumentRequest::where('status', 'cancelled')->count() }}</span>
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-card>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Active Queue</h2>

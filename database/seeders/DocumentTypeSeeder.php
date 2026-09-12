@@ -15,32 +15,24 @@ class DocumentTypeSeeder extends Seeder
                 'code' => 'BRGY_CLEARANCE',
                 'description' => 'Official document certifying good moral character and residency.',
                 'complexity' => 'simple',
-                'complexity_weight' => 1.50,
-                'processing_fee' => 0.00,
             ],
             [
                 'name' => 'Certificate of Residency',
                 'code' => 'CERT_RESIDENCY',
                 'description' => 'Proof of residency within the barangay.',
                 'complexity' => 'simple',
-                'complexity_weight' => 1.50,
-                'processing_fee' => 0.00,
             ],
             [
                 'name' => 'Certificate of Indigency',
                 'code' => 'CERT_INDIGENCY',
                 'description' => 'Certificate proving financial incapacity for government assistance.',
                 'complexity' => 'moderate',
-                'complexity_weight' => 1.00,
-                'processing_fee' => 0.00,
             ],
             [
-                'name' => 'Barangay Certificate',
-                'code' => 'CERT_BARANGAY_CERT',
-                'description' => 'Official barangay certificate for various purposes.',
+                'name' => 'Certificate of Good Moral Character',
+                'code' => 'CERT_GOOD_MORAL',
+                'description' => 'Official document certifying good moral character.',
                 'complexity' => 'simple',
-                'complexity_weight' => 1.50,
-                'processing_fee' => 0.00,
             ],
         ];
 
@@ -56,6 +48,6 @@ class DocumentTypeSeeder extends Seeder
             );
         }
 
-        DB::table('document_types')->whereNotIn('code', ['BRGY_CLEARANCE', 'CERT_RESIDENCY', 'CERT_INDIGENCY', 'CERT_BARANGAY_CERT'])->update(['is_active' => false]);
+        DB::table('document_types')->whereNotIn('code', ['BRGY_CLEARANCE', 'CERT_RESIDENCY', 'CERT_INDIGENCY', 'CERT_GOOD_MORAL'])->update(['is_active' => false]);
     }
 }

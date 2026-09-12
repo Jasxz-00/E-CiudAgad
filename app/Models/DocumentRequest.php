@@ -13,33 +13,40 @@ class DocumentRequest extends Model
         'control_number',
         'queue_number',
         'qr_code',
+        'verification_token',
         'resident_id',
         'document_type_id',
         'purpose_id',
         'purpose_other',
         'status',
         'total_weight',
+        'resident_weight',
+        'purpose_weight',
         'virtual_finish_time',
         'queue_position',
+        'service_date',
+        'scheduled_after_cutoff',
         'remarks',
         'rejection_reason',
         'processed_by',
         'processing_started_at',
         'completed_at',
         'expires_at',
-        'processing_fee',
     ];
 
     protected function casts(): array
     {
         return [
             'total_weight' => 'decimal:2',
+            'resident_weight' => 'decimal:4',
+            'purpose_weight' => 'decimal:4',
             'virtual_finish_time' => 'decimal:6',
             'queue_position' => 'integer',
+            'service_date' => 'date',
+            'scheduled_after_cutoff' => 'boolean',
             'processing_started_at' => 'datetime',
             'completed_at' => 'datetime',
             'expires_at' => 'datetime',
-            'processing_fee' => 'decimal:2',
         ];
     }
 

@@ -17,10 +17,8 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 sm:gap-4 text-sm">
             <div><span class="text-gray-600 dark:text-gray-400">Resident</span><p class="font-medium">{{ $request->resident?->full_name }}</p></div>
-            <div><span class="text-gray-600 dark:text-gray-400">Category</span><p class="font-medium capitalize">{{ $request->resident?->category }}</p></div>
-            <div><span class="text-gray-600 dark:text-gray-400">Purpose</span><p class="font-medium">{{ $request->purpose?->name ?? $request->purpose_other }}</p></div>
+<div><span class="text-gray-600 dark:text-gray-400">Category</span><p class="font-medium capitalize">{{ $request->resident?->category }}</p></div>
             <div><span class="text-gray-600 dark:text-gray-400">Queue Position</span><p class="font-medium">{{ $request->queue_position ?? 'Waiting' }}</p></div>
-            <div><span class="text-gray-600 dark:text-gray-400">Total Weight</span><p class="font-medium">{{ number_format((float) $request->total_weight, 2) }}</p></div>
             <div><span class="text-gray-600 dark:text-gray-400">Submitted</span><p class="font-medium">{{ $request->created_at->format('M d, Y h:i A') }}</p></div>
             @if($request->processing_started_at)
             <div><span class="text-gray-600 dark:text-gray-400">Processing Started</span><p class="font-medium">{{ $request->processing_started_at->format('M d, Y h:i A') }}</p></div>

@@ -29,4 +29,9 @@ class RequestPurpose extends Model
     {
         return $this->hasMany(DocumentRequest::class);
     }
+
+    public function documentTypes()
+    {
+        return $this->belongsToMany(DocumentType::class, 'document_type_purposes')->withTimestamps();
+    }
 }

@@ -98,6 +98,12 @@
                     <div class="flex items-center gap-3 mb-6">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-700 text-white text-sm font-bold">1</span>
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100" x-text="t('step_1_title')"></h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-show="lang === 'fil'">
+                        {{ __('registration.all_required', [], 'fil') }}
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-show="lang === 'en'">
+                        {{ __('registration.all_required', [], 'en') }}
+                    </p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,12 +130,6 @@
                                     :readonly="middleNameNone"
                                     class="input-field uppercase-input flex-1"
                                     placeholder="SANTOS" autocomplete="additional-name" @@input.debounce.500ms="saveDraft()">
-                                <label class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap cursor-pointer">
-                                    <input type="checkbox" name="middle_name_none" value="1" x-model="middleNameNone"
-                                        @@change="if (middleNameNone) { middle_name = ''; } saveDraft()"
-                                        class="w-4 h-4 rounded border-gray-200 dark:border-gray-700 text-primary-700">
-                                    <span x-text="t('none') || 'N/A'"></span>
-                                </label>
                             </div>
                         </div>
                         <div>
@@ -263,13 +263,13 @@
                                             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                             :class="statusPhotoSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>{{ __('Take Photo') }}</span>
+                                        <span x-text="t('take_photo')"></span>
                                     </button>
                                     <button type="button" @@click="selectStatusPhoto('upload')"
                                             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                             :class="statusPhotoSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
-                                        <span>{{ __('Upload') }}</span>
+                                        <span x-text="t('upload')"></span>
                                     </button>
                                 </div>
                                 <p class="mt-2 text-xs text-gray-600 dark:text-gray-400" x-text="t('upload_verification_hint')"></p>
@@ -278,15 +278,12 @@
                                 </template>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" name="is_pregnant" id="is_pregnant" value="1" x-model="isPregnant" @@change="saveDraft()" class="w-4 h-4 rounded border-gray-200 dark:border-gray-700 text-primary-700">
-                            <label for="is_pregnant" class="text-sm text-gray-600 dark:text-gray-400" x-text="t('is_pregnant_label') || 'Currently pregnant'"></label>
-                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
                             <label class="label" x-text="t('address')"></label>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Barangay Molino I (system context)</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <label for="building_no" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('building_no')"></label>
@@ -318,18 +315,6 @@
                                         class="input-field uppercase-input w-full" placeholder="e.g., PHASE 1" autocomplete="address-line2"
                                         @@input.debounce.500ms="saveDraft()">
                                 </div>
-                                <div>
-                                    <label for="barangay" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('barangay')"></label>
-                                    <input id="barangay" type="text" name="barangay" x-model="barangay"
-                                        class="input-field uppercase-input w-full" placeholder="MOLINO I" autocomplete="address-level2"
-                                        @@input.debounce.500ms="saveDraft()">
-                                </div>
-                                <div>
-                                    <label for="purok" class="text-xs text-gray-600 dark:text-gray-400" x-text="t('purok')"></label>
-                                    <input id="purok" type="text" name="purok" x-model="purok"
-                                        class="input-field uppercase-input w-full" placeholder="e.g., PUROK 1" autocomplete="off"
-                                        @@input.debounce.500ms="saveDraft()">
-                                </div>
                             </div>
                             <input type="hidden" name="city" value="BACOOR CITY">
                             <input type="hidden" name="province" value="CAVITE">
@@ -337,7 +322,7 @@
                             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                 <span x-text="t('default_location') || 'Default: '"></span> <strong>BACOOR CITY, CAVITE 4102</strong>
                             </p>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.street || errors.barangay" x-text="errors.street || errors.barangay"></p>
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.street" x-text="errors.street"></p>
                             <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-950 rounded-xl text-sm text-gray-600 dark:text-gray-400">
                                 <span class="font-medium" x-text="t('complete_address')"></span><br>
                                 <span x-text="fullAddress"></span>
@@ -399,30 +384,46 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="id_type" class="label"><span x-text="t('id_type')"></span> <span class="text-danger">*</span></label>
-                            <select id="id_type" name="id_type" x-model="idType" class="select-field @error('id_type') input-error @enderror" required autocomplete="off"
-                                    @@change="onIdTypeChange()">
+                            <select
+                                id="id_type"
+                                name="id_type"
+                                x-model="idType"
+                                class="select-field @error('id_type') input-error @enderror"
+                                required
+                                autocomplete="off"
+                                @@change="onIdTypeChange()"
+                            >
                                 <option value="" x-text="t('select_id_type')"></option>
-                                <option value="phil_id">Philippine National ID (PhilID/ePhilID)</option>
-                                <option value="passport">Philippine Passport</option>
-                                <option value="umid">UMID</option>
-                                <option value="philhealth">PhilHealth</option>
-                                <option value="drivers_license">Driver's License</option>
-                                <option value="prc_id">PRC ID</option>
-                                <option value="postal_id">Postal ID</option>
-                                <option value="sss_id">SSS ID</option>
-                                <option value="tin_id">TIN ID</option>
-                                <option value="ibp_id">IBP ID</option>
-                                <option value="owwa_ofw_id">OWWA/OFW ID</option>
-                                <option value="barangay_id">Barangay ID</option>
-                                <option value="school_id">School ID</option>
+                                <optgroup label="Uri ng ID">
+                                    <option value="phil_id">Philippine National ID (PhilID/ePhilID)</option>
+                                    <option value="passport">Philippine Passport</option>
+                                    <option value="umid">UMID</option>
+                                    <option value="philhealth">PhilHealth ID</option>
+                                    <option value="drivers_license">Driver's License</option>
+                                    <option value="prc_id">PRC ID</option>
+                                    <option value="postal_id">Postal ID</option>
+                                    <option value="sss_id">SSS ID</option>
+                                    <option value="tin_id">TIN ID</option>
+                                    <option value="ibp_id">IBP ID</option>
+                                    <option value="owwa_ofw_id">OWWA / OFW ID</option>
+                                    <option value="barangay_id">Barangay ID</option>
+                                    <option value="school_id">School ID</option>
+                                </optgroup>
+
+                                <optgroup label="Dokumento">
+                                    <option value="birth_certificate">Birth Certificate</option>
+                                    <option value="baptismal_certificate">Baptismal Certificate</option>
+                                    <option value="hoa_certificate">HOA Certificate</option>
+                                </optgroup>
                             </select>
+                            
                             @error('id_type') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_type" x-text="errors.id_type"></p>
                         </div>
                     </div>
 
                     <div id="id-scan-section">
-                    <template x-if="idType">
+                    <template x-if="isValidId">
                     <div class="mt-6 space-y-6">
                         <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                             <label class="label font-semibold text-gray-900 dark:text-gray-100" x-text="t('id_scan_front')"> <span class="text-danger">*</span></label>
@@ -444,18 +445,22 @@
                                                 class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                                 :class="idScanFrontSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                            <span>{{ __('Take Photo') }}</span>
+                                            <span x-text="t('take_photo')"></span>
                                         </button>
                                         <button type="button" @@click="selectIdPhoto('front', 'upload')"
                                                 class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                                 :class="idScanFrontSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
-                                            <span>{{ __('Upload') }}</span>
+                                            <span x-text="t('upload')"></span>
                                         </button>
                                     </div>
-                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400" x-text="t('photo_formats_hint')"></p>
                                     <template x-if="idScanFrontPreview">
                                         <img :src="idScanFrontPreview" alt="ID front preview" class="mt-3 max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            <button type="button" @@click="replaceIdPhoto('front')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700" x-text="t('replace_photo')"></button>
+                                            <button type="button" @@click="removeIdPhoto('front')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" x-text="t('remove_photo')"></button>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
@@ -481,26 +486,88 @@
                                                 class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                                 :class="idScanBackSource === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                            <span>{{ __('Take Photo') }}</span>
+                                            <span x-text="t('take_photo')"></span>
                                         </button>
                                         <button type="button" @@click="selectIdPhoto('back', 'upload')"
                                                 class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
                                                 :class="idScanBackSource === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
-                                            <span>{{ __('Upload') }}</span>
+                                            <span x-text="t('upload')"></span>
                                         </button>
                                     </div>
-                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
+                                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400" x-text="t('photo_formats_hint')"></p>
                                     <template x-if="idScanBackPreview">
                                         <img :src="idScanBackPreview" alt="ID back preview" class="mt-3 max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            <button type="button" @@click="replaceIdPhoto('back')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700" x-text="t('replace_photo')"></button>
+                                            <button type="button" @@click="removeIdPhoto('back')" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" x-text="t('remove_photo')"></button>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
                         </div>
                     </div>
                     </template>
+                    <template x-if="isCertificateProof">
+                        <div class="mt-6">
+                            <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
 
-<div x-show="!idType" x-cloak class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-600 dark:text-gray-400">
+                                <label class="label font-semibold text-gray-900 dark:text-gray-100">
+                                    <span x-text="selectedProofLabel"></span>
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                                    Mag-upload ng malinaw at nababasang larawan ng napiling dokumento.
+                                </p>
+
+                                <input
+                                    id="proof_document"
+                                    type="file"
+                                    name="proof_document"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    class="hidden"
+                                    @@change="onProofDocumentChange($event)"
+                                >
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" @@click="selectProofDocument('camera')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                        :class="id1x1Source === 'camera' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span x-text="t('take_photo') || 'Take Photo'"></span>
+                                    </button>
+
+                                    <button type="button" @@click="selectProofDocument('upload')"
+                                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors duration-200"
+                                            :class="id1x1Source === 'upload' ? 'bg-primary-700 text-white border-primary-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700'">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 8l5-5 5 5m-5-5v12"/></svg>
+                                        <span x-text="t('upload') || 'Upload'"></span>
+                                    </button>
+
+                                </div>
+
+                                <template x-if="proofDocumentPreview">
+                                    <div class="mt-3">
+                                        <img
+                                            :src="proofDocumentPreview"
+                                            alt="Proof document preview"
+                                            class="max-h-48 rounded-lg border border-gray-200 dark:border-gray-700 object-contain"
+                                        >
+                                    </div>
+                                </template>
+
+                                <p
+                                    class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                    x-show="errors.proof_document"
+                                    x-text="errors.proof_document"
+                                ></p>
+
+                            </div>
+                        </div>
+                    </template>
+
+                    <div x-show="!idType" x-cloak class="mt-6 p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-600 dark:text-gray-400">
                         <p class="flex items-center gap-2">
                             <svg class="w-5 h-5 shrink-0 text-primary-700 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span x-text="t('id_scan_pending_type')"></span>
@@ -526,9 +593,13 @@
                                 <span x-text="t('upload') || 'Upload'"></span>
                             </button>
                         </div>
-                        <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG (1x1)</p>
+                        <p class="mt-2 text-xs text-gray-600 dark:text-gray-400" x-text="t('photo_formats_hint')"></p>
                         <template x-if="id1x1Preview">
                             <img :src="id1x1Preview" alt="1x1 ID preview" class="mt-3 max-h-32 rounded-lg border border-gray-200 dark:border-gray-700 object-contain">
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <button type="button" @@click="replaceId1x1()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700" x-text="t('replace_photo')"></button>
+                                <button type="button" @@click="removeId1x1()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" x-text="t('remove_photo')"></button>
+                            </div>
                         </template>
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.id_1x1" x-text="errors.id_1x1"></p>
                     </div>
@@ -552,9 +623,6 @@
                                 <option value="{{ $documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->id) ? 'selected' : '' }}>
                                     {{ $documentTypes->firstWhere('code', 'CERT_INDIGENCY')?->name ?? 'Certificate of Indigency' }}
                                 </option>
-                                <option value="{{ $documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->id) ? 'selected' : '' }}>
-                                    {{ $documentTypes->firstWhere('code', 'CERT_BARANGAY_CERT')?->name ?? 'Barangay Certificate' }}
-                                </option>
                                 <option value="{{ $documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->id }}" {{ old('document_type_id') == ($documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->id) ? 'selected' : '' }}>
                                     {{ $documentTypes->firstWhere('code', 'CERT_RESIDENCY')?->name ?? 'Certificate of Residency' }}
                                 </option>
@@ -567,50 +635,17 @@
                         </div>
                     </div>
 
-                    <div x-show="isCertificateOfIndigency()" x-cloak class="mt-4">
+                    <div class="mt-4">
                         <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
-                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
+                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()"
+                                :disabled="!documentTypeId">
                             <option value="" x-text="t('select_purpose')"></option>
-                            @foreach($purposes as $purpose)
-                                @if($purpose->code === 'MEDICAL_ASSISTANCE' || $purpose->code === 'FINANCIAL_ASSISTANCE')
-                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
-                                @endif
-                            @endforeach
+                            <template x-for="purpose in purposesForSelectedDocument" :key="purpose.id">
+                                <option :value="String(purpose.id)" x-text="purpose.label"></option>
+                            </template>
                         </select>
-                        @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div x-show="isCertificateOfBarangayCert()" x-cloak class="mt-4">
-                        <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
-                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
-                            <option value="" x-text="t('select_purpose')"></option>
-                            @foreach($purposes as $purpose)
-                                @if($purpose->code === 'ENROLLMENT' || $purpose->code === 'SCHOLARSHIP' || $purpose->code === 'VOUCHER')
-                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
-                                @endif
-                            @endforeach
-                        </select>
-                        @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div x-show="isCertificateOfResidency()" x-cloak class="mt-4">
-                        <label for="purpose_other" class="label">{{ __('registration.purpose_other') }} <span class="text-danger">*</span></label>
-                        <input id="purpose_other" type="text" name="purpose_other" x-model="purposeOther" required
-                            class="input-field uppercase-input" placeholder="{{ __('registration.purpose_other_placeholder') }}" autocomplete="off"
-                            @@input.debounce.500ms="saveDraft()">
-                        @error('purpose_other') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div x-show="isBarangayClearance()" x-cloak class="mt-4">
-                        <label for="purpose_id" class="label"><span x-text="t('purpose')"></span> <span class="text-danger">*</span></label>
-                        <select id="purpose_id" name="purpose_id" class="select-field" required autocomplete="off" x-model="purposeId" @@change="saveDraft()">
-                            <option value="" x-text="t('select_purpose')"></option>
-                            @foreach($purposes as $purpose)
-                                @if(in_array($purpose->code, ['LOCAL_EMPLOYMENT', 'NBI_REQUIREMENT', 'POLICE_CLEARANCE', 'POSTAL_ID', 'BANK_LOAN', 'MARRIAGE']))
-                                    <option value="{{ $purpose->id }}" {{ old('purpose_id') == $purpose->id ? 'selected' : '' }} x-text="t('purpose_'.$purpose->code)"></option>
-                                @endif
-                            @endforeach
-                        </select>
+                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400" x-show="!documentTypeId" x-text="t('select_document_first')"></p>
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400" x-show="errors.purpose_id" x-text="errors.purpose_id"></p>
                         @error('purpose_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                     </div>
 
@@ -741,12 +776,11 @@
                     </div>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-4">
-                        <button type="button" x-show="step > 1" x-cloak @@click="goToStep(this.step - 1)" :disabled="submitting" class="btn-ghost">
+                        <button type="button" x-show="step > 1" x-cloak @@click="goToStep(step - 1)" :disabled="submitting" class="btn-ghost">
                             <svg class="w-5 h-5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             <span x-text="t('back') || 'Back'"></span>
                         </button>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button type="button" @@click="clearForm()" :disabled="submitting" class="btn-ghost border border-danger/40 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white text-xs px-4 py-2 rounded-lg transition-colors duration-200" x-text="t('clear_form')"></button>
                             <a href="{{ url('/') }}" wire:navigate :class="submitting ? 'pointer-events-none opacity-50' : ''" class="btn-ghost" x-text="t('cancel')"></a>
                             <template x-if="step < totalSteps">
                                 <button type="button" @@click="validateStep()" :disabled="submitting" class="btn-primary px-8" x-text="t('next') || 'Next'"></button>
@@ -784,7 +818,6 @@
             first_name: '{{ old("first_name") }}',
             last_name: '{{ old("last_name") }}',
             middle_name: '{{ old("middle_name") }}',
-            middleNameNone: {{ old('middle_name_none') ? 'true' : 'false' }},
             suffix: '{{ old("suffix") }}',
             nationality: '{{ old("nationality", "FILIPINO") }}',
             occupation: '{{ old("occupation") }}',
@@ -832,15 +865,14 @@
 
             documentTypeId: '{{ old("document_type_id") }}',
             purposeId: '{{ old("purpose_id") }}',
-            purposeOther: '{{ old("purpose_other") }}',
             privacyConsent: {{ old('privacy_consent') ? 'true' : 'false' }},
-            isPregnant: {{ old('is_pregnant') ? 'true' : 'false' }},
             controlNumber: '',
             qrCode: '',
             queueNumber: '',
 
             documentTypeNames: {{ Illuminate\Support\Js::from($documentTypes->pluck('name', 'id')) }},
             purposeNames: {{ Illuminate\Support\Js::from($purposes->pluck('name', 'id')) }},
+            documentPurposes: {{ Illuminate\Support\Js::from($documentPurposes) }},
 
             fieldStepMap: {
                 first_name: 1, last_name: 1, middle_name: 1, middle_name_none: 1,
@@ -853,8 +885,8 @@
                 contact_number: 1, emergency_contact: 1, email: 1,
                 city: 1, province: 1,
                 id_type: 2, id_scan_front: 2, id_scan_back: 2, id_1x1: 2,
-                document_type_id: 3, purpose_id: 3, purpose_other: 3,
-                privacy_consent: 3, is_pregnant: 3,
+                document_type_id: 3, purpose_id: 3, privacy_consent: 3,
+                proof_document: 2, id_type: 2, id_scan_front: 2, id_scan_back: 2, proof_document: 2, id_1x1: 2,
             },
 
             get computedAge() {
@@ -916,33 +948,21 @@
                 return this.purposeNames[this.purposeId] || '-';
             },
 
-            get purposeIsOthers() {
-                return false;
+            get purposesForSelectedDocument() {
+                const list = this.documentPurposes[this.documentTypeId] || [];
+                return list.map(purpose => ({
+                    id: purpose.id,
+                    label: (this.translations[this.lang] && this.translations[this.lang][purpose.key]) || purpose.name,
+                }));
             },
 
-            isCertificateOfIndigency() {
-                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_INDIGENCY');
-            },
-            isCertificateOfBarangayCert() {
-                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_BARANGAY_CERT');
-            },
-            isCertificateOfResidency() {
-                return this.documentTypeId == this.getDocumentTypeIdByCode('CERT_RESIDENCY');
-            },
-            isBarangayClearance() {
-                return this.documentTypeId == this.getDocumentTypeIdByCode('BRGY_CLEARANCE');
-            },
-            getDocumentTypeIdByCode(code) {
-                var ids = @json($documentTypeCodeMap);
-                return ids[code] || null;
-            },
-            onDocumentTypeChange() {
-                this.purposeId = '';
-                this.purposeOther = '';
-                this.saveDraft();
-            },
+             onDocumentTypeChange() {
+                 this.purposeId = '';
+                 this.errors.purpose_id = '';
+                 this.saveDraft();
+             },
 
-            t(key) {
+             t(key) {
                 return (this.translations[this.lang] && this.translations[this.lang][key]) || key;
             },
 
@@ -972,6 +992,66 @@
                     if (digits.length > 7) formatted += '-' + digits.slice(7, 11);
                 }
                 el.value = formatted;
+            },
+
+            get isCertificateProof() {
+                return [
+                    'birth_certificate',
+                    'baptismal_certificate',
+                    'hoa_certificate'
+                ].includes(this.idType);
+            },
+
+            get isValidId() {
+                return !!this.idType && !this.isCertificateProof;
+            },
+
+            get selectedProofLabel() {
+                const labels = {
+                    birth_certificate: 'Birth Certificate',
+                    baptismal_certificate: 'Baptismal Certificate',
+                    hoa_certificate: 'HOA Certificate',
+                };
+
+                return labels[this.idType] || '';
+            },
+
+            proofDocumentPreview: '',
+            proofDocumentSelected: false,
+            proofDocumentSource: 'upload',
+            proofDocumentNeedsReupload: false,
+            selectProofDocument(source) {
+                this.proofDocumentSource = source;
+
+                const input = document.getElementById('proof_document');
+
+                if (!input) return;
+
+                input.removeAttribute('capture');
+
+                if (source === 'camera') {
+                    input.setAttribute('capture', 'environment');
+                }
+
+                input.value = '';
+                this.proofDocumentPreview = '';
+                this.proofDocumentSelected = false;
+
+                input.click();
+            },
+
+            onProofDocumentChange(event) {
+                const file = event.target.files[0];
+
+                this.proofDocumentPreview = file
+                    ? URL.createObjectURL(file)
+                    : '';
+
+                this.proofDocumentSelected = !!file;
+                this.proofDocumentNeedsReupload = false;
+                this.errors.proof_document = '';
+
+                this.saveDraft();
             },
 
             selectIdPhoto(side, source) {
@@ -1039,6 +1119,37 @@
                 this.saveDraft();
             },
 
+            replaceIdPhoto(side) {
+                const key = 'idScan' + (side === 'back' ? 'Back' : 'Front');
+                const source = this[key + 'Source'] === 'camera' ? 'camera' : 'upload';
+                this.selectIdPhoto(side, source);
+            },
+
+            removeIdPhoto(side) {
+                const key = 'idScan' + (side === 'back' ? 'Back' : 'Front');
+                this[key + 'Preview'] = '';
+                this[key + 'Selected'] = false;
+                this[key + 'NeedsReupload'] = false;
+                this.errors['id_scan_' + side] = '';
+                const input = document.getElementById('id_scan_' + side);
+                if (input) input.value = '';
+                this.saveDraft();
+            },
+
+            replaceId1x1() {
+                this.selectId1x1(this.id1x1Source === 'camera' ? 'camera' : 'upload');
+            },
+
+            removeId1x1() {
+                this.id1x1Preview = '';
+                this.id1x1Selected = false;
+                this.id1x1NeedsReupload = false;
+                this.errors.id_1x1 = '';
+                const input = document.getElementById('id_1x1_file');
+                if (input) input.value = '';
+                this.saveDraft();
+            },
+
             goToStep(n) {
                 if (this.submitting) return;
                 const target = Number(n);
@@ -1056,21 +1167,74 @@
                 if (this.step === 1) {
                     if (!this.first_name) { valid = false; errors.first_name = this.t('first_name_required') || 'First name is required.'; if (!firstErrorField) firstErrorField = 'first_name'; }
                     if (!this.last_name) { valid = false; errors.last_name = this.t('last_name_required') || 'Last name is required.'; if (!firstErrorField) firstErrorField = 'last_name'; }
-                    if (!this.middle_name && !this.middleNameNone) { valid = false; errors.middle_name = this.t('middle_name_required') || 'Middle name is required.'; if (!firstErrorField) firstErrorField = 'middle_name'; }
                     if (!this.nationality) { valid = false; errors.nationality = this.t('nationality_required') || 'Nationality is required.'; if (!firstErrorField) firstErrorField = 'nationality'; }
                     if (!this.month || !this.day || !this.year) { valid = false; errors.birthdate = this.t('birthdate_required') || 'Please select your birthdate.'; if (!firstErrorField) firstErrorField = 'birthdate_month'; }
                     if (!this.gender) { valid = false; errors.gender = this.t('gender_required') || 'Please select your sex.'; if (!firstErrorField) firstErrorField = 'gender'; }
                     if (!this.civil_status) { valid = false; errors.civil_status = this.t('civil_status_required') || 'Please select your civil status.'; if (!firstErrorField) firstErrorField = 'civil_status'; }
                     if (!this.place_of_birth) { valid = false; errors.place_of_birth = this.t('place_of_birth_required') || 'Place of birth is required.'; if (!firstErrorField) firstErrorField = 'place_of_birth'; }
                 } else if (this.step === 2) {
-                    if (!this.idType) { valid = false; errors.id_type = this.t('id_type_required') || 'Please select an ID type.'; if (!firstErrorField) firstErrorField = 'id_type'; }
-                    if (!this.idScanFrontSelected) { valid = false; errors.id_scan_front = this.t('id_scan_front_required') || 'Please scan or upload the front of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_front'; }
-                    if (!this.idScanBackSelected) { valid = false; errors.id_scan_back = this.t('id_scan_back_required') || 'Please scan or upload the back of your government ID.'; if (!firstErrorField) firstErrorField = 'id_scan_back'; }
-                    if (!this.id1x1Selected) { valid = false; errors.id_1x1 = this.t('id_photo_1x1_required') || 'Please upload or take a 1x1 ID picture.'; if (!firstErrorField) firstErrorField = 'id_1x1'; }
+                    if (!this.idType) {
+                        valid = false;
+                        errors.id_type =
+                            this.t('id_type_required') ||
+                            'Please select an ID or proof type.';
+
+                        if (!firstErrorField) {
+                            firstErrorField = 'id_type';
+                        }
+                    }
+
+                    if (this.isValidId) {
+
+                        if (!this.idScanFrontSelected) {
+                            valid = false;
+                            errors.id_scan_front =
+                                this.t('id_scan_front_required') ||
+                                'Please upload the front of your ID.';
+
+                            if (!firstErrorField) {
+                                firstErrorField = 'id_scan_front';
+                            }
+                        }
+
+                        if (!this.idScanBackSelected) {
+                            valid = false;
+                            errors.id_scan_back =
+                                this.t('id_scan_back_required') ||
+                                'Please upload the back of your ID.';
+
+                            if (!firstErrorField) {
+                                firstErrorField = 'id_scan_back';
+                            }
+                        }
+                    }
+
+                    if (this.isCertificateProof && !this.proofDocumentSelected) {
+                        valid = false;
+
+                        errors.proof_document =
+                            'Please upload the selected proof document.';
+
+                        if (!firstErrorField) {
+                            firstErrorField = 'proof_document';
+                        }
+                    }
+
+                    if (!this.id1x1Selected) {
+                        valid = false;
+
+                        errors.id_1x1 =
+                            this.t('id_photo_1x1_required') ||
+                            'Please upload or take a 1x1 ID picture.';
+
+                        if (!firstErrorField) {
+                            firstErrorField = 'id_1x1_file';
+                        }
+                    }
                 } else if (this.step === 3) {
                     if (!this.documentTypeId) { valid = false; errors.document_type_id = this.t('select_document') || 'Please select a document.'; if (!firstErrorField) firstErrorField = 'document_type_id'; }
                     if (!this.purposeId) { valid = false; errors.purpose_id = this.t('select_purpose') || 'Please select a purpose.'; if (!firstErrorField) firstErrorField = 'purpose_id'; }
-                    if (this.purposeIsOthers && !this.purposeOther) { valid = false; errors.purpose_other = this.t('purpose_other') || 'Please specify your purpose.'; if (!firstErrorField) firstErrorField = 'purpose_other'; }
+                    if (this.purposeId && !this.purposesForSelectedDocument.some(p => String(p.id) === String(this.purposeId))) { valid = false; errors.purpose_id = this.t('purpose_invalid_for_document') || 'The selected purpose is not available for the chosen document.'; if (!firstErrorField) firstErrorField = 'purpose_id'; }
                     if (!this.privacyConsent) { valid = false; errors.privacy_consent = this.t('consent_required'); if (!firstErrorField) firstErrorField = 'privacy_consent'; }
                 }
                 if (valid) {
@@ -1126,15 +1290,14 @@
                     idScanBackSelected: this.idScanBackSelected,
                     id1x1Selected: this.id1x1Selected,
                     documentTypeId: this.documentTypeId,
+                    proofDocumentSelected: this.proofDocumentSelected,
                     purposeId: this.purposeId,
-                    purposeOther: this.purposeOther,
                     privacyConsent: this.privacyConsent,
-                    isPregnant: this.isPregnant,
                 };
                 localStorage.setItem('registration_draft', JSON.stringify(data));
             },
 
-restoreDraft() {
+    restoreDraft() {
                     let saved = null;
                     try {
                         saved = localStorage.getItem('registration_draft');
@@ -1185,6 +1348,10 @@ restoreDraft() {
                         this.id1x1NeedsReupload = true;
                         this.id1x1Selected = false;
                     }
+                    if (data.proofDocumentSelected) {
+                        this.proofDocumentNeedsReupload = true;
+                        this.proofDocumentSelected = false;
+                    }
 
                     this.draftRestored = true;
                     this.$nextTick(() => {
@@ -1201,61 +1368,6 @@ restoreDraft() {
                         console.warn('register: unable to remove corrupted draft', e);
                     }
                 },
-
-            clearForm() {
-                if (this.submitting) return;
-                if (confirm(this.t('clear_form_confirm') || 'Are you sure you want to clear the form?')) {
-                    localStorage.removeItem('registration_draft');
-                    this.first_name = '';
-                    this.last_name = '';
-                    this.middle_name = '';
-                    this.middleNameNone = false;
-                    this.suffix = '';
-                    this.nationality = 'FILIPINO';
-                    this.occupation = '';
-                    this.month = '';
-                    this.day = '';
-                    this.year = '';
-                    this.gender = '';
-                    this.civil_status = '';
-                    this.religion = '';
-                    this.place_of_birth = '';
-                    this.personStatus = '';
-                    this.building_no = '';
-                    this.unit_no = '';
-                    this.street = '';
-                    this.road = '';
-                    this.barangay = 'MOLINO I';
-                    this.subdivision = '';
-                    this.purok = '';
-                    this.contactNumber = '';
-                    this.emergencyContact = '';
-                    this.email = '';
-                    this.idType = '';
-                    this.idScanFrontPreview = '';
-                    this.idScanFrontSource = 'upload';
-                    this.idScanFrontSelected = false;
-                    this.idScanFrontNeedsReupload = false;
-                    this.idScanBackPreview = '';
-                    this.idScanBackSource = 'upload';
-                    this.idScanBackSelected = false;
-                    this.idScanBackNeedsReupload = false;
-                    this.id1x1Preview = '';
-                    this.id1x1Source = 'upload';
-                    this.id1x1Selected = false;
-                    this.id1x1NeedsReupload = false;
-                    this.statusPhotoPreview = '';
-                    this.statusPhotoSource = 'upload';
-                    this.documentTypeId = '';
-                    this.purposeId = '';
-                    this.purposeOther = '';
-                    this.privacyConsent = false;
-                    this.errors = {};
-                    this.formError = '';
-                    this.draftRestored = false;
-                    this.step = 1;
-                }
-            },
 
             setErrors(errorBag) {
                 this.errors = {};
@@ -1354,14 +1466,31 @@ restoreDraft() {
             },
 
             onIdTypeChange() {
+
                 this.idScanFrontPreview = '';
                 this.idScanFrontSelected = false;
                 this.idScanFrontNeedsReupload = false;
+
                 this.idScanBackPreview = '';
                 this.idScanBackSelected = false;
                 this.idScanBackNeedsReupload = false;
+
+                this.proofDocumentPreview = '';
+                this.proofDocumentSelected = false;
+                this.proofDocumentNeedsReupload = false;
+
                 this.errors.id_scan_front = '';
                 this.errors.id_scan_back = '';
+                this.errors.proof_document = '';
+
+                const front = document.getElementById('id_scan_front');
+                const back = document.getElementById('id_scan_back');
+                const proof = document.getElementById('proof_document');
+
+                if (front) front.value = '';
+                if (back) back.value = '';
+                if (proof) proof.value = '';
+
                 this.saveDraft();
             },
         };

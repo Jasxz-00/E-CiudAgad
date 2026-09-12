@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="languageManager()" x-init="init">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,7 +23,7 @@
     <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <a href="{{ url('/') }}" class="flex items-center gap-3" aria-label="E-CiudAgad Home">
+                <a href="{{ route('home') }}" class="flex items-center gap-3" aria-label="E-CiudAgad Home">
                     <div class="w-10 h-10 flex items-center justify-center" style="background-color:#1E40AF;border-radius:0.75rem;">
                         <span class="text-white font-bold text-lg">EC</span>
                     </div>
@@ -31,8 +31,9 @@
                         <span class="text-lg font-bold text-primary-800 dark:text-primary-400">E-CiudAgad</span>
                     </div>
                 </a>
-
-                <button id="theme-toggle" type="button" class="btn-ghost p-2" aria-label="Toggle dark mode">
+                
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" type="button" class="btn-ghost p-2" aria-label="Toggle dark mode">
                     <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>

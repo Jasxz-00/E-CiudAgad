@@ -2,7 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Models\Announcement;
+/**
+ * ⚠️ DEMONSTRATION DATA ONLY ⚠️
+ * 
+ * This seeder creates fictional demonstration accounts and records for
+ * local development and testing purposes only. It must NOT be run in
+ * production environments. Production data must be sourced from secure
+ * systems and protected environment variables.
+ * 
+ * Seed with: php artisan db:seed --env=local
+ * Do NOT run: php artisan db:seed in production without explicit approval.
+ */
+
 use App\Models\AuditLog;
 use App\Models\Concern;
 use App\Models\DocumentRequest;
@@ -129,19 +140,19 @@ class DemoDataSeeder extends Seeder
         $residentModels = [];
         foreach ($residents as $i => $data) {
             $birthdate = \Carbon\Carbon::parse($data['birthdate']);
-            $email = 'resident'.($i + 1).'@example.com';
+            $email = 'resident'.($i + 1).'@demo-gov.ph';
             $username = 'resident'.($i + 1);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
                 [
                     'username' => $username,
-                    'password' => bcrypt('resident123'),
+                    'password' => bcrypt('Demo@Pass'.($i + 1).'2026!'),
                     'role' => 'resident',
                     'is_active' => true,
                     'email_verified_at' => now()->subDays(30 - $i),
                     'tracking_number' => $credentials->generateTrackingNumber(),
-                    'pin' => Hash::make('123456'),
+                    'pin' => Hash::make('Demo'.($i + 1).'2026'),
                 ]
             );
             $user->assignRole('resident');
@@ -208,7 +219,7 @@ class DemoDataSeeder extends Seeder
             [4, 0, 0, 'reviewing', 1, 'Awaiting ID verification'],
             [8, 7, 3, 'pending', 0, null],
             [5, 4, 6, 'approved', 2, 'Approved, awaiting printing'],
-            [9, 0, 5, 'approved', 3, 'Payment received'],
+            [9, 0, 5, 'approved', 3, 'Approved for release'],
             [2, 2, 0, 'completed', 5, 'Released to representative'],
             [7, 5, 2, 'completed', 6, null],
             [10, 0, 3, 'completed', 4, null],
@@ -249,7 +260,7 @@ class DemoDataSeeder extends Seeder
             if (in_array($status, ['pending', 'reviewing'])) {
                 $wfq->enqueue($request);
             } else {
-                $request->update(['total_weight' => $wfq->calculateWeight($resident, $documentType, $purpose)]);
+                $request->update(['total_weight' => $wfq->calculateWeight($resident, $purpose)]);
             }
 
             if (in_array($status, ['approved', 'completed', 'released'])) {
@@ -296,28 +307,6 @@ class DemoDataSeeder extends Seeder
                 'admin_notes' => $adminNotes,
                 'created_at' => now()->subDays($daysAgo)->subHours($i),
                 'updated_at' => now()->subDays(max($daysAgo - 1, 0)),
-            ]);
-        }
-
-        $announcements = [
-            ['Bacoor City Free Medical Mission', 'A free medical and dental mission will be held at the barangay covered court on the first Saturday of next month. Bring your PhilHealth ID and barangay ID.', true, 3],
-            ['Purok 2 Cleanup Drive', 'Community cleanup drive this weekend. Volunteers are encouraged to join at 7 AM in front of the chapel.', true, 5],
-            ['Barangay Fiesta Celebration', 'Annual barangay fiesta on August 15. There will be games, a bingo night, and a community dinner.', true, 8],
-            ['Distribution of Senior Citizen Allowance', 'Senior citizens may claim their monthly allowance at the barangay hall every 15th of the month.', true, 2],
-            ['Water Service Interruption Advisory', 'Water service will be interrupted on Thursday from 8 AM to 5 PM due to pipeline repair along Molino Road.', true, 1],
-            ['Barangay Basketball League 2026', 'Registration is now open for the upcoming inter-purok basketball league. Deadline is on August 30.', false, 0],
-        ];
-
-        foreach ($announcements as $i => $spec) {
-            [$title, $content, $isPublished, $daysAgo] = $spec;
-            Announcement::create([
-                'title' => $title,
-                'content' => $content,
-                'is_published' => $isPublished,
-                'published_at' => $isPublished ? now()->subDays($daysAgo)->subHours($i) : null,
-                'created_by' => $admin->id,
-                'created_at' => now()->subDays($daysAgo + 1)->subHours($i),
-                'updated_at' => now()->subDays($daysAgo),
             ]);
         }
 
@@ -380,7 +369,7 @@ class DemoDataSeeder extends Seeder
         $registrations = [
             ['registered', 0, ['channel' => 'walk-in', 'remarks' => 'Assisted with online registration']],
             ['filed_request', 2, ['document' => 'Certificate of Indigency', 'channel' => 'walk-in']],
-            ['filed_request', 7, ['document' => 'Barangay ID', 'channel' => 'online']],
+            ['filed_request', 7, ['document' => 'Barangay Clearance', 'channel' => 'online']],
         ];
 
         foreach ($registrations as $i => $spec) {
@@ -394,7 +383,7 @@ class DemoDataSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Demo data seeded: '.count($residentModels).' residents, '.count($requestSpecs).' document requests, '.count($concernSpecs).' concerns, '.count($announcements).' announcements.');
+        $this->command->info('Demo data seeded: '.count($residentModels).' residents, '.count($requestSpecs).' document requests, '.count($concernSpecs).' concerns.');
     }
 
     private function generateIdNumber(int $index): string

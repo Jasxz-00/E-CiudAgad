@@ -4,11 +4,15 @@ document.addEventListener('alpine:init', () => {
     const Alpine = window.Alpine;
 
     Alpine.data('languageManager', () => ({
-        lang: localStorage.getItem('eciudadagad_lang') || 'en',
+        lang: localStorage.getItem('eciudadagad_lang') || 'fil',
         init() {
             this.applyLang(this.lang);
+            window.addEventListener('set-lang', (e) => {
+                this.setLang(e.detail);
+            });
         },
         setLang(l) {
+            if (l !== 'fil' && l !== 'en') l = 'fil';
             this.lang = l;
             localStorage.setItem('eciudadagad_lang', l);
             this.applyLang(l);

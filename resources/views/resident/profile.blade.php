@@ -3,7 +3,13 @@
 @section('title', __('profile.title'))
 
 @section('content')
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="profileDirtyGuard()">
+    <a href="{{ route('resident.dashboard') }}" class="btn-ghost mb-4 inline-flex items-center gap-2 text-sm"
+       @click.prevent="navigateAway('{{ route('resident.dashboard') }}')">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        {{ __('common.back_to_dashboard') }}
+    </a>
+
     @if(session('success'))
         <div class="mb-4 p-3 bg-green-600/15 text-green-600 dark:text-green-400 border border-success/30 rounded-xl text-sm">{{ session('success') }}</div>
     @endif
@@ -58,7 +64,7 @@
     <div class="card mb-6">
         <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">{{ __('profile.contact_info') }}</h2>
 
-        <form method="POST" action="{{ route('resident.profile.update') }}" class="space-y-4" x-data="{ submitting: false }" @@submit="submitting = true">
+        <form method="POST" action="{{ route('resident.profile.update') }}" class="space-y-4" x-data="{ submitting: false }" @@submit="submitting = true; dirty = false">
             @csrf
             @method('PUT')
 
@@ -238,3 +244,29 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function profileDirtyGuard() {
+    return {
+        dirty: false,
+        init() {
+            const form = this.$el.querySelector('form');
+            if (!form) return;
+            const original = {};
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                original[el.name] = el.value;
+            });
+            form.addEventListener('input', () => {
+                this.dirty = Array.from(form.querySelectorAll('input, select, textarea')).some(el => el.value !== original[el.name]);
+            });
+            form.addEventListener('submit', () => { this.dirty = false; });
+        },
+        navigateAway(url) {
+            if (this.dirty && !confirm('{{ __('common.unsaved_changes_confirm') }}')) return;
+            window.location.href = url;
+        }
+    };
+}
+</script>
+@endpush

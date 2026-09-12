@@ -10,7 +10,7 @@ class RequestPurposeSeeder extends Seeder
     public function run(): void
     {
         $purposes = [
-            ['name' => 'Medical Assistance', 'code' => 'MEDICAL_ASSISTANCE', 'priority_weight' => 3.00],
+            ['name' => 'Medical Assistance', 'code' => 'MEDICAL_ASSISTANCE', 'priority_weight' => 4.00],
             ['name' => 'Financial Assistance', 'code' => 'FINANCIAL_ASSISTANCE', 'priority_weight' => 3.00],
             ['name' => 'Enrollment', 'code' => 'ENROLLMENT', 'priority_weight' => 2.00],
             ['name' => 'Scholarship', 'code' => 'SCHOLARSHIP', 'priority_weight' => 2.00],
@@ -21,6 +21,12 @@ class RequestPurposeSeeder extends Seeder
             ['name' => 'Postal ID Requirement', 'code' => 'POSTAL_ID', 'priority_weight' => 1.50],
             ['name' => 'Bank/Loan Requirement', 'code' => 'BANK_LOAN', 'priority_weight' => 1.50],
             ['name' => 'Marriage Requirement', 'code' => 'MARRIAGE', 'priority_weight' => 2.00],
+            ['name' => 'Education/School Requirement', 'code' => 'EDUCATION_SCHOOL_REQUIREMENT', 'priority_weight' => 2.00],
+            ['name' => 'Financial/Loan Transaction', 'code' => 'FINANCIAL_LOAN_TRANSACTION', 'priority_weight' => 1.00],
+            ['name' => 'Legal Requirement', 'code' => 'LEGAL_REQUIREMENT', 'priority_weight' => 2.00],
+            ['name' => 'Proof of Address', 'code' => 'PROOF_OF_ADDRESS', 'priority_weight' => 1.00],
+            ['name' => 'Employment', 'code' => 'EMPLOYMENT', 'priority_weight' => 2.00],
+            ['name' => 'Education', 'code' => 'EDUCATION', 'priority_weight' => 2.00],
         ];
 
         foreach ($purposes as $purpose) {
@@ -29,5 +35,18 @@ class RequestPurposeSeeder extends Seeder
                 array_merge($purpose, ['is_active' => true, 'created_at' => now(), 'updated_at' => now()])
             );
         }
+
+        // Deactivate obsolete purposes not part of the approved WFQ weight set.
+        DB::table('request_purposes')->whereNotIn('code', [
+            'MEDICAL_ASSISTANCE',
+            'FINANCIAL_ASSISTANCE',
+            'EDUCATION_SCHOOL_REQUIREMENT',
+            'SCHOLARSHIP',
+            'LEGAL_REQUIREMENT',
+            'EMPLOYMENT',
+            'EDUCATION',
+            'FINANCIAL_LOAN_TRANSACTION',
+            'PROOF_OF_ADDRESS',
+        ])->update(['is_active' => false]);
     }
 }

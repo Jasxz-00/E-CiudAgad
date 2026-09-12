@@ -22,6 +22,7 @@ class QueueNumberCollisionTest extends TestCase
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\RolePermissionSeeder']);
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DocumentTypeSeeder']);
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\RequestPurposeSeeder']);
+        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DocumentTypePurposeSeeder']);
     }
 
     private function createExistingResident(string $email = 'existing.queue@example.com'): Resident
@@ -130,6 +131,7 @@ class QueueNumberCollisionTest extends TestCase
             'emergency_contact' => '0998-765-4321',
             'email' => '',
             'id_type' => 'phil_id',
+            'proof_type' => 'valid_id',
             'document_type_id' => '1',
             'purpose_id' => '1',
             'privacy_consent' => '1',

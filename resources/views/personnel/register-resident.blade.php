@@ -8,6 +8,7 @@
 
     <div class="card mb-6">
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Use this form to register a resident on their behalf. All fields follow the same rules as the resident-facing registration.</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">All fields marked with * are required.</p>
     </div>
 
     @if(session('success'))
@@ -110,14 +111,12 @@
                         <option value="pregnant" {{ old('person_status') == 'pregnant' ? 'selected' : '' }}>Pregnant</option>
                     </select>
                 </div>
-                <div>
+
+                <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                     <label for="status_verification_photo" class="label">Verification Photo (if PWD/Senior/Pregnant)</label>
+                    <p class="mt-1 text-xs text-gray-600 dark:text-gray-400 mb-3">Upload supporting documentation.</p>
                     <input id="status_verification_photo" type="file" name="status_verification_photo" accept=".jpg,.jpeg,.png,.pdf" autocomplete="off" class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700">
                 </div>
-            </div>
-            <div class="flex items-center gap-2 mt-4">
-                <input type="checkbox" name="is_pregnant" id="is_pregnant" value="1" {{ old('is_pregnant') ? 'checked' : '' }} class="w-4 h-4 rounded border-gray-200 dark:border-gray-700 text-primary-700">
-                <label for="is_pregnant" class="text-sm text-gray-600 dark:text-gray-400">Currently pregnant</label>
             </div>
 
             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Address</h2>
@@ -126,9 +125,13 @@
                 <x-input name="unit_no" label="Unit No." :value="old('unit_no')" class="uppercase-input" placeholder="49" autocomplete="address-line2" />
                 <x-input name="street" label="Street" :value="old('street')" class="uppercase-input" placeholder="e.g., M.H. DEL PILAR ST" autocomplete="street-address" />
                 <x-input name="road" label="Road" :value="old('road', 'MOLINO ROAD')" class="uppercase-input" placeholder="MOLINO ROAD" autocomplete="off" />
-                <x-input name="barangay" label="Barangay" :value="old('barangay', 'MOLINO I')" class="uppercase-input" placeholder="MOLINO I" autocomplete="address-level2" />
+                <div>
+                    <label for="barangay" class="label">Barangay</label>
+                    <input id="barangay" type="text" value="MOLINO I" readonly disabled class="input-field uppercase-input bg-gray-50 dark:bg-gray-950">
+                    <input type="hidden" name="barangay" value="MOLINO I">
+                    <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Fixed service area: Barangay Molino I (system context).</p>
+                </div>
                 <x-input name="subdivision" label="Subdivision" :value="old('subdivision')" class="uppercase-input" placeholder="e.g., PHASE 1" autocomplete="off" />
-                <x-input name="purok" label="Purok/Zone" :value="old('purok')" class="uppercase-input" placeholder="e.g., PUROK 1" autocomplete="off" />
             </div>
 
             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Contact Information</h2>
@@ -157,6 +160,9 @@
                         <option value="owwa_ofw_id" {{ old('id_type') == 'owwa_ofw_id' ? 'selected' : '' }}>OWWA/OFW ID</option>
                         <option value="barangay_id" {{ old('id_type') == 'barangay_id' ? 'selected' : '' }}>Barangay ID</option>
                         <option value="school_id" {{ old('id_type') == 'school_id' ? 'selected' : '' }}>School ID</option>
+                        <option value="birth_certificate" {{ old('id_type') == 'birth_certificate' ? 'selected' : '' }}>Birth Certificate</option>
+                        <option value="baptismal_certificate" {{ old('id_type') == 'baptismal_certificate' ? 'selected' : '' }}>Baptismal Certificate</option>
+                        <option value="hoa_certificate" {{ old('id_type') == 'hoa_certificate' ? 'selected' : '' }}>HOA Certificate</option>
                     </select>
                     @error('id_type') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                 </div>
@@ -179,6 +185,63 @@
                 <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Accepted: JPG, JPEG, PNG</p>
                 @error('id_scan_back') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
             </div>
+
+            <div class="p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                <label for="id_1x1" class="label font-semibold text-gray-900 dark:text-gray-100">1x1 ID Picture <span class="text-red-600 dark:text-red-400">*</span></label>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Upload a clear and recent 1x1 picture of the resident. Accepted formats: JPG, JPEG, PNG. Maximum size: 10 MB.</p>
+                <input id="id_1x1" type="file" name="id_1x1" accept=".jpg,.jpeg,.png"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700 hover:file:bg-primary-100 dark:bg-primary-900/30"
+                       autocomplete="off">
+                @error('id_1x1') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+            </div>
+
+            <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Proof of Residency / Identity</h2>
+            <div>
+                <label for="proof_type" class="label">Proof Type <span class="text-red-600 dark:text-red-400">*</span></label>
+                <select id="proof_type" name="proof_type" class="select-field" required autocomplete="off">
+                    <option value="">Select Proof Type</option>
+                    <option value="valid_id" {{ old('proof_type') == 'valid_id' ? 'selected' : '' }}>Valid ID</option>
+                    <option value="birth_certificate" {{ old('proof_type') == 'birth_certificate' ? 'selected' : '' }}>Birth Certificate</option>
+                    <option value="baptismal_certificate" {{ old('proof_type') == 'baptismal_certificate' ? 'selected' : '' }}>Baptismal Certificate</option>
+                    <option value="hoa_certificate" {{ old('proof_type') == 'hoa_certificate' ? 'selected' : '' }}>HOA Certificate</option>
+                </select>
+                @error('proof_type') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+            </div>
+
+            <div id="proof-upload-valid_id" class="proof-upload-group">
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Valid ID selected: use the Front of ID, Back of ID, and 1x1 ID Picture uploads above.</p>
+            </div>
+            <div id="proof-upload-birth_certificate" class="proof-upload-group" style="display: none;">
+                <label for="proof_upload_birth" class="label">Birth Certificate Image <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input id="proof_upload_birth" type="file" name="proof_upload_birth" accept=".jpg,.jpeg,.png" autocomplete="off"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700">
+            </div>
+            <div id="proof-upload-baptismal_certificate" class="proof-upload-group" style="display: none;">
+                <label for="proof_upload_baptismal" class="label">Baptismal Certificate Image <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input id="proof_upload_baptismal" type="file" name="proof_upload_baptismal" accept=".jpg,.jpeg,.png" autocomplete="off"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700">
+            </div>
+            <div id="proof-upload-hoa_certificate" class="proof-upload-group" style="display: none;">
+                <label for="proof_upload_hoa" class="label">HOA Certificate Image <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input id="proof_upload_hoa" type="file" name="proof_upload_hoa" accept=".jpg,.jpeg,.png" autocomplete="off"
+                       class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:bg-primary-900/30 file:text-primary-700">
+            </div>
+
+            <script>
+                (function () {
+                    var select = document.getElementById('proof_type');
+                    function toggleProofUploads() {
+                        var value = select ? select.value : '';
+                        document.querySelectorAll('.proof-upload-group').forEach(function (el) {
+                            el.style.display = (el.id === 'proof-upload-' + value) ? '' : 'none';
+                        });
+                    }
+                    if (select) {
+                        select.addEventListener('change', toggleProofUploads);
+                        toggleProofUploads();
+                    }
+                })();
+            </script>
 
             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mt-6">Document Request</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

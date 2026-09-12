@@ -89,7 +89,6 @@ class DocumentGenerationService
             'document_type_code' => $documentType->code,
             'purpose' => $genericPurposeName,
             'purpose_code' => $purpose->code,
-            'fee' => (float) $documentType->processing_fee,
             'show_photo' => true,
             'resident' => [
                 'full_name' => $resident->last_name.', '.$resident->first_name.($resident->middle_name ? ' '.$resident->middle_name[0].'.' : '').($resident->suffix ? ' '.$resident->suffix : ''),

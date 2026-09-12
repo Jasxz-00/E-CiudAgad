@@ -17,7 +17,7 @@ class RegisterResidentRequest extends FormRequest
         $rules = [
             'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Z\s]+$/'],
             'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Z\s]+$/'],
-            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z\s]*$/', 'required_unless:middle_name_none,true'],
+            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Z\s]*$/'],
             'middle_name_none' => ['nullable', 'boolean'],
             'suffix' => ['nullable', 'string', 'max:10', 'in:JR.,SR.,II,III,IV,V'],
             'birthdate_month' => ['required', 'integer', 'between:1,12'],
@@ -49,27 +49,34 @@ class RegisterResidentRequest extends FormRequest
             ],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'person_status' => ['nullable', 'string', 'in:pwd,senior,pregnant'],
-            'status_verification_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'status_verification_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'id_type' => ['required', 'string', 'max:50'],
             'id_scan_front' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png',
-                'max:5120',
+                'max:10240',
             ],
             'id_scan_back' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png',
-                'max:5120',
+                'max:10240',
+            ],
+            'proof_document' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png',
+                'max:10240',
             ],
             'id_1x1' => [
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png',
-                'max:5120',
+                'max:10240',
             ],
             'document_type_id' => ['required', 'exists:document_types,id'],
+            'proof_type' => ['required', 'in:valid_id,birth_certificate,baptismal_certificate,hoa_certificate'],
             'purpose_id' => ['required', 'exists:request_purposes,id'],
             'purpose_other' => ['nullable', 'string', 'max:255'],
             'privacy_consent' => ['required', 'accepted'],
@@ -84,10 +91,7 @@ class RegisterResidentRequest extends FormRequest
         $docType = $this->input('document_type_id');
         $docTypeModel = \App\Models\DocumentType::find($docType);
 
-        if ($docTypeModel && $docTypeModel->code === 'CERT_RESIDENCY') {
-            $rules['purpose_other'] = ['required', 'string', 'max:255'];
-            $rules['purpose_id'] = ['nullable'];
-        } elseif ($docTypeModel && in_array($docTypeModel->code, ['CERT_INDIGENCY', 'CERT_BARANGAY_CERT', 'BRGY_CLEARANCE'])) {
+        if ($docTypeModel) {
             $rules['purpose_id'] = ['required', 'exists:request_purposes,id'];
             $rules['purpose_other'] = ['nullable'];
         }
@@ -119,10 +123,13 @@ class RegisterResidentRequest extends FormRequest
             'privacy_consent.accepted' => __('You must accept the data privacy consent to proceed.'),
             'id_scan_front.required' => __('Please upload a clear image of the FRONT side of your government ID.'),
             'id_scan_front.mimes' => __('ID front must be a JPG, JPEG, or PNG image.'),
-            'id_scan_front.max' => __('ID front must not exceed 5MB.'),
+            'id_scan_front.max' => __('ID front must not exceed 10MB.'),
             'id_scan_back.required' => __('Please upload a clear image of the BACK side of your government ID.'),
             'id_scan_back.mimes' => __('ID back must be a JPG, JPEG, or PNG image.'),
-            'id_scan_back.max' => __('ID back must not exceed 5MB.'),
+            'id_scan_back.max' => __('ID back must not exceed 10MB.'),
+            'id_1x1.max' => __('1x1 photo must not exceed 10MB.'),
+            'proof_type.required' => __('Please select a proof type.'),
+            'proof_type.in' => __('Please select a valid proof type.'),
             'gender.required' => __('Please select your sex.'),
             'document_type_id.required' => __('Please select a document type.'),
             'purpose_id.required' => __('Please select a purpose.'),
@@ -132,7 +139,7 @@ class RegisterResidentRequest extends FormRequest
             'birthdate_month.between' => __('Please provide a valid birthdate.'),
             'birthdate_day.between' => __('Please provide a valid birthdate.'),
             'birthdate_year.between' => __('Please provide a valid birthdate.'),
-            'middle_name.required_unless' => __('Please enter your middle name, or tick the "NONE" checkbox if you do not have one.'),
+            
             'nationality.required' => __('Please enter your nationality.'),
             'civil_status.required' => __('Please select your civil status.'),
             'place_of_birth.required' => __('Please enter your place of birth.'),
@@ -154,6 +161,20 @@ class RegisterResidentRequest extends FormRequest
             if ($month >= 1 && $month <= 12 && $day >= 1 && $day <= 31 && $year >= 1900 && $year <= (int) date('Y')) {
                 if (! checkdate($month, $day, $year)) {
                     $validator->errors()->add('birthdate_day', __('Please provide a valid birthdate.'));
+                }
+            }
+
+            $documentTypeId = $this->input('document_type_id');
+            $purposeId = $this->input('purpose_id');
+
+            if ($documentTypeId && $purposeId) {
+                $mapped = \Illuminate\Support\Facades\DB::table('document_type_purposes')
+                    ->where('document_type_id', $documentTypeId)
+                    ->where('request_purpose_id', $purposeId)
+                    ->exists();
+
+                if (! $mapped) {
+                    $validator->errors()->add('purpose_id', __('The selected purpose is not available for the chosen document.'));
                 }
             }
         });

@@ -2,79 +2,177 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
 use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\RequestPurpose;
 use App\Models\Resident;
-use App\Models\WFQConfiguration;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class WFQService
 {
-    public function calculateWeight(Resident $resident, DocumentType $documentType, ?RequestPurpose $purpose): float
+    const SERVICE_LENGTH = 1.0;
+
+    public function calculateWeight(Resident $resident, ?RequestPurpose $purpose): float
     {
-        $categoryWeight = $this->getActiveWeight('category_weight', $resident->category);
+        $residentWeight = (float) config(
+            "queue.weights.resident.{$resident->category}",
+            config('queue.weights.default_resident_weight', 1)
+        );
 
-        $complexityWeight = $documentType->complexity_weight > 0
-            ? (float) $documentType->complexity_weight
-            : $this->getActiveWeight('complexity_weight', $documentType->complexity);
+        $purposeWeight = (float) config('queue.weights.default_purpose_weight', 1);
+        if ($purpose && $purpose->code) {
+            $purposeWeight = (float) config("queue.weights.purpose.{$purpose->code}", $purposeWeight);
+        }
 
-        $purposeWeight = $purpose && $purpose->priority_weight > 0
-            ? (float) $purpose->priority_weight
-            : $this->getActiveWeight('purpose_weight', $purpose?->code ?? '');
-
-        return (float) $categoryWeight * $complexityWeight * $purposeWeight;
+        return $residentWeight + $purposeWeight;
     }
 
-    public function calculateVirtualFinishTime(float $totalWeight): float
+    public function residentWeight(Resident $resident): float
     {
-        $lastVft = DocumentRequest::whereIn('status', ['pending', 'reviewing'])
-            ->max('virtual_finish_time') ?? 0;
+        return (float) config(
+            "queue.weights.resident.{$resident->category}",
+            config('queue.weights.default_resident_weight', 1)
+        );
+    }
 
-        return (float) $lastVft + (1 / max($totalWeight, 0.0001));
+    public function purposeWeight(?RequestPurpose $purpose): float
+    {
+        $purposeWeight = (float) config('queue.weights.default_purpose_weight', 1);
+
+        if ($purpose && $purpose->code) {
+            $purposeWeight = (float) config("queue.weights.purpose.{$purpose->code}", $purposeWeight);
+        }
+
+        return $purposeWeight;
+    }
+
+    public function calculateVirtualFinishTime(float $totalWeight, ?string $serviceDate = null): float
+    {
+        $query = DocumentRequest::whereIn('status', ['pending', 'reviewing']);
+
+        if ($serviceDate) {
+            $query->whereDate('service_date', $serviceDate);
+        }
+
+        $lastVft = $query->max('virtual_finish_time') ?? 0;
+
+        return (float) $lastVft + (self::SERVICE_LENGTH / max($totalWeight, 0.0001));
     }
 
     public function enqueue(DocumentRequest $request): void
     {
-        $resident = $request->resident;
-        $documentType = $request->documentType;
-        $purpose = $request->purpose;
+        // Concurrency safety: wrap in transaction with row-level locks to prevent race conditions
+        // when multiple residents submit requests for the same service_date simultaneously.
+        DB::transaction(function () use ($request) {
+            $serviceDate = $request->service_date ?? now()->toDateString();
 
-        $totalWeight = $this->calculateWeight($resident, $documentType, $purpose);
-        $vft = $this->calculateVirtualFinishTime($totalWeight);
+            // Lock all existing pending/reviewing requests for the same service_date
+            // to prevent concurrent enqueue operations from reading stale VFT values.
+            DocumentRequest::where('service_date', $serviceDate)
+                ->whereIn('status', ['pending', 'reviewing'])
+                ->lockForUpdate()
+                ->get();
 
-        $request->update([
-            'total_weight' => $totalWeight,
-            'virtual_finish_time' => $vft,
-        ]);
+            $resident = $request->resident;
+            $purpose = $request->purpose;
 
-        $this->recalculateQueue();
+            $residentWeight = $this->residentWeight($resident);
+            $purposeWeight = $this->purposeWeight($purpose);
+            $totalWeight = $residentWeight + $purposeWeight;
+
+            $vft = $this->calculateVirtualFinishTime($totalWeight, $serviceDate);
+
+            $request->update([
+                'resident_weight' => $residentWeight,
+                'purpose_weight' => $purposeWeight,
+                'total_weight' => $totalWeight,
+                'virtual_finish_time' => $vft,
+            ]);
+
+            AuditLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'queue_enqueue',
+                'description' => "Request #{$request->id} enqueued with virtual_finish_time={$vft} for service_date={$serviceDate}",
+                'model_type' => DocumentRequest::class,
+                'model_id' => $request->id,
+                'auditable_type' => DocumentRequest::class,
+                'auditable_id' => $request->id,
+                'old_values' => null,
+                'new_values' => ['virtual_finish_time' => $vft, 'resident_weight' => $residentWeight, 'purpose_weight' => $purposeWeight, 'total_weight' => $totalWeight],
+            ]);
+
+            $this->recalculateQueue();
+        });
     }
 
     public function recalculateQueue(): void
     {
-        $requests = DocumentRequest::whereIn('status', ['pending', 'reviewing'])
-            ->orderBy('virtual_finish_time', 'asc')
-            ->orderBy('created_at', 'asc')
-            ->get();
+        DB::transaction(function () {
+            $dates = DocumentRequest::whereIn('status', ['pending', 'reviewing'])
+                ->distinct()
+                ->orderBy('service_date', 'asc')
+                ->pluck('service_date');
 
-        DB::transaction(function () use ($requests) {
-            $position = 1;
-            foreach ($requests as $req) {
-                $req->update(['queue_position' => $position++]);
+            foreach ($dates as $date) {
+                $requests = DocumentRequest::whereIn('status', ['pending', 'reviewing'])
+                    ->whereDate('service_date', $date)
+                    ->lockForUpdate()
+                    ->orderBy('virtual_finish_time', 'asc')
+                    ->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                $position = 1;
+                foreach ($requests as $req) {
+                    if ((int) $req->queue_position !== $position) {
+                        $req->update(['queue_position' => $position]);
+                    }
+                    $position++;
+                }
             }
+
+            AuditLog::create([
+                'user_id' => Auth::id() ?? null,
+                'action' => 'queue_recalculate',
+                'description' => 'Queue positions recalculated across all active service dates',
+                'model_type' => DocumentRequest::class,
+                'model_id' => null,
+                'auditable_type' => DocumentRequest::class,
+                'auditable_id' => 0,
+                'old_values' => null,
+                'new_values' => null,
+            ]);
         });
     }
 
-    private function getActiveWeight(string $type, string $key): float
+    public function lock(DocumentRequest $request): ?object
     {
-        $config = WFQConfiguration::where('config_type', $type)
-            ->where('config_key', $key)
-            ->where('is_active', true)
+        return DB::table('document_requests')
+            ->where('id', $request->id)
+            ->lockForUpdate()
             ->first();
+    }
 
-        return $config ? (float) $config->weight : 1.0;
+    public function removeFromActiveQueue(DocumentRequest $request): void
+    {
+        $oldVft = $request->virtual_finish_time;
+        $request->update(['virtual_finish_time' => 0.000000]);
+        $this->recalculateQueue();
+
+        AuditLog::create([
+            'user_id' => Auth::id() ?? null,
+            'action' => 'queue_remove',
+            'description' => "Request #{$request->id} removed from active queue (virtual_finish_time was {$oldVft})",
+            'model_type' => DocumentRequest::class,
+            'model_id' => $request->id,
+            'auditable_type' => DocumentRequest::class,
+            'auditable_id' => $request->id,
+            'old_values' => ['virtual_finish_time' => $oldVft],
+            'new_values' => ['virtual_finish_time' => 0.000000],
+        ]);
     }
 
     public function generateQueueNumber(): string
@@ -89,6 +187,20 @@ class WFQService
         }
 
         return $prefix.str_pad($maxSuffix + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function getOrderedActiveQueue()
+    {
+        return DocumentRequest::query()
+            ->whereIn('status', [
+                'approved',
+                'queued',
+            ])
+            ->whereNotNull('virtual_finish_time')
+            ->orderBy('virtual_finish_time', 'asc')
+            ->orderBy('eligible_at', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
     }
 
     public function isQueueNumberCollision(\Throwable $e): bool

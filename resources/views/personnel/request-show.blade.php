@@ -22,7 +22,7 @@
                     <div><span class="text-gray-600 dark:text-gray-400">{{ __('common.document') }}</span><p class="font-medium">{{ $request->documentType?->name }}</p></div>
                     <div><span class="text-gray-600 dark:text-gray-400">{{ __('common.purpose') }}</span><p class="font-medium">{{ $request->purpose?->name }}</p></div>
                     <div><span class="text-gray-600 dark:text-gray-400">{{ __('common.queue_position') }}</span><p class="font-medium">{{ $request->queue_position ?? '-' }}</p></div>
-                    <div><span class="text-gray-600 dark:text-gray-400">{{ __('common.weight') }}</span><p class="font-medium">{{ number_format((float) $request->total_weight, 2) }}</p></div>
+                    <div><span class="text-gray-600 dark:text-gray-400">{{ __('registration.processing_date') }}</span><p class="font-medium">{{ $request->service_date ? $request->service_date->format('M d, Y') : '-' }}</p></div>
                     <div><span class="text-gray-600 dark:text-gray-400">{{ __('common.date') }}</span><p class="font-medium">{{ $request->created_at->format('M d, Y h:i A') }}</p></div>
                     @if($request->completed_at)<div><span class="text-gray-600 dark:text-gray-400">{{ __('common.completed') }}</span><p class="font-medium">{{ $request->completed_at->format('M d, Y h:i A') }}</p></div>@endif
                 </div>
@@ -42,6 +42,25 @@
                         @csrf
                         <button type="submit" class="btn-primary text-sm">{{ __('common.reviewing') }}</button>
                     </form>
+                    <form method="POST" action="{{ route('queue.call-next', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-accent text-sm">{{ __('registration.call_next') }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('queue.hold', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-ghost text-sm">{{ __('registration.hold') }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('queue.skip', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-ghost text-sm">{{ __('registration.skip_to_next_day') }}</button>
+                    </form>
+                    @endif
+
+                    @if(in_array($request->status, ['on_hold']))
+                    <form method="POST" action="{{ route('queue.resume', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-accent text-sm">{{ __('registration.resume') }}</button>
+                    </form>
                     @endif
 
                     @if(in_array($request->status, ['reviewing']))
@@ -49,7 +68,22 @@
                         @csrf
                         <button type="submit" class="btn-primary text-sm">{{ __('common.approved') }}</button>
                     </form>
+                    <form method="POST" action="{{ route('queue.ready', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-accent text-sm">{{ __('registration.mark_ready') }}</button>
+                    </form>
+                    <form method="POST" action="{{ route('queue.hold', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-ghost text-sm">{{ __('registration.hold') }}</button>
+                    </form>
                     <button @@click="showRejectForm = !showRejectForm" class="btn-danger text-sm">{{ __('common.rejected') }}</button>
+                    @endif
+
+                    @if(in_array($request->status, ['ready_for_release']))
+                    <form method="POST" action="{{ route('queue.release', $request->control_number) }}">
+                        @csrf
+                        <button type="submit" class="btn-accent text-sm">{{ __('common.released') }}</button>
+                    </form>
                     @endif
 
                     @if(in_array($request->status, ['approved']))

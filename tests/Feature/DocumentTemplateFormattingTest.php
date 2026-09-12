@@ -52,7 +52,7 @@ class DocumentTemplateFormattingTest extends TestCase
     {
         $day = now()->format('jS');
 
-        foreach (['BRGY_CLEARANCE', 'CERT_RESIDENCY', 'CERT_INDIGENCY', 'CERT_BARANGAY_CERT'] as $code) {
+        foreach (['BRGY_CLEARANCE', 'CERT_RESIDENCY', 'CERT_INDIGENCY', 'CERT_GOOD_MORAL'] as $code) {
             $svg = app(DocumentGenerationService::class)->preview($this->makeRequest($code));
 
             $this->assertStringContainsString('<b>'.$day.' day of', $svg, "Issued date must be bold in {$code}.");

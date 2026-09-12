@@ -66,7 +66,6 @@ class MasterDataController extends Controller
             'code' => 'required|string|max:50|unique:document_types,code',
             'complexity' => 'required|in:simple,moderate,complex',
             'complexity_weight' => 'required|numeric|min:0|max:99.99',
-            'processing_fee' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
@@ -83,7 +82,6 @@ class MasterDataController extends Controller
             'code' => 'required|string|max:50|unique:document_types,code,'.$id,
             'complexity' => 'required|in:simple,moderate,complex',
             'complexity_weight' => 'required|numeric|min:0|max:99.99',
-            'processing_fee' => 'required|numeric|min:0',
             'is_active' => 'boolean',
             'description' => 'nullable|string',
         ]);

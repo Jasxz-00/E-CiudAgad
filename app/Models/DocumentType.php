@@ -15,7 +15,6 @@ class DocumentType extends Model
         'description',
         'complexity',
         'complexity_weight',
-        'processing_fee',
         'requires_attachments',
         'is_active',
     ];
@@ -26,12 +25,16 @@ class DocumentType extends Model
             'is_active' => 'boolean',
             'requires_attachments' => 'boolean',
             'complexity_weight' => 'decimal:2',
-            'processing_fee' => 'decimal:2',
         ];
     }
 
     public function documentRequests()
     {
         return $this->hasMany(DocumentRequest::class);
+    }
+
+    public function purposes()
+    {
+        return $this->belongsToMany(RequestPurpose::class, 'document_type_purposes')->withTimestamps();
     }
 }

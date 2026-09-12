@@ -11,8 +11,6 @@ return new class extends Migration
             ->whereIn('code', ['CEDULA', 'BRGY_ID', 'FTJ_CERT'])
             ->delete();
 
-        DB::table('document_types')->update(['processing_fee' => 0.00]);
-
         DB::table('request_purposes')
             ->whereIn('code', ['PERSONAL', 'EMERGENCY', 'SCHOOL'])
             ->delete();
@@ -30,9 +28,9 @@ return new class extends Migration
     public function down(): void
     {
         $documents = [
-            ['name' => 'Cedula (Community Tax Certificate)', 'code' => 'CEDULA', 'description' => 'Community tax certificate for residents.', 'complexity' => 'simple', 'complexity_weight' => 2.00, 'processing_fee' => 10.00],
-            ['name' => 'Barangay ID', 'code' => 'BRGY_ID', 'description' => 'Barangay identification card.', 'complexity' => 'moderate', 'complexity_weight' => 1.00, 'processing_fee' => 100.00],
-            ['name' => 'First Time Job Seeker Certificate', 'code' => 'FTJ_CERT', 'description' => 'Certificate under RA 11261 exempting first-time job seekers from documentary fees.', 'complexity' => 'simple', 'complexity_weight' => 1.50, 'processing_fee' => 0.00],
+            ['name' => 'Cedula (Community Tax Certificate)', 'code' => 'CEDULA', 'description' => 'Community tax certificate for residents.', 'complexity' => 'simple', 'complexity_weight' => 2.00],
+            ['name' => 'Barangay ID', 'code' => 'BRGY_ID', 'description' => 'Barangay identification card.', 'complexity' => 'moderate', 'complexity_weight' => 1.00],
+            ['name' => 'First Time Job Seeker Certificate', 'code' => 'FTJ_CERT', 'description' => 'Certificate under RA 11261 exempting first-time job seekers from documentary fees.', 'complexity' => 'simple', 'complexity_weight' => 1.50],
         ];
 
         foreach ($documents as $doc) {

@@ -13,7 +13,9 @@ class DatabaseSeeder extends Seeder
             ResidentCategorySeeder::class,
             DocumentTypeSeeder::class,
             RequestPurposeSeeder::class,
+            DocumentTypePurposeSeeder::class,
             WFQConfigurationSeeder::class,
+            QueueScheduleSeeder::class,
             AdminUserSeeder::class,
         ]);
 

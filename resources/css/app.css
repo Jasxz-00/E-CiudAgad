@@ -121,6 +121,10 @@ body {
 .dark .badge-completed { background-color:rgba(52,211,153,0.2); color:#6EE7B7; }
 .badge-released { background-color:#DBEAFE; color:#1E40AF; }
 .dark .badge-released { background-color:rgba(96,165,250,0.2); color:#93C5FD; }
+.badge-on_hold { background-color:#FEF9C3; color:#854D0E; }
+.dark .badge-on_hold { background-color:rgba(250,204,21,0.2); color:#FDE047; }
+.badge-ready_for_release { background-color:#EDE9FE; color:#5B21B6; }
+.dark .badge-ready_for_release { background-color:rgba(167,139,250,0.2); color:#C4B5FD; }
 
 /* ===== Sidebar ===== */
 .sidebar-link { display:flex; align-items:center; gap:0.75rem; padding:0.625rem 0.75rem; border-radius:0.75rem; color:#374151; font-weight:500; transition:all 0.2s; }

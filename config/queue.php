@@ -126,4 +126,45 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | WFQ (Weighted Fair Queueing) Weights
+    |--------------------------------------------------------------------------
+    |
+    | Single source of truth for the queue priority weights used by the
+    | Weighted Fair Queueing scheduler. A document request's combined weight
+    | is computed as W = resident_weight + purpose_weight.
+    |
+    | The window service time is fixed at Li = 1 unit, so a request's virtual
+    | finish time is F(i) = max(F(i-1), V(A(i))) + Li / W. Locally administered
+    | weights here must be kept in sync with the seeded WFQConfiguration rows
+    | (which are displayed in the admin WFQ matrix).
+    |
+    */
+
+    'weights' => [
+
+        'resident' => [
+            'regular' => 1,
+            'senior' => 2,
+            'pregnant' => 3,
+            'pwd' => 4,
+        ],
+
+        'purpose' => [
+            'MEDICAL_ASSISTANCE' => 4,
+            'FINANCIAL_ASSISTANCE' => 3,
+            'EDUCATION_SCHOOL_REQUIREMENT' => 2,
+            'SCHOLARSHIP' => 2,
+            'LEGAL_REQUIREMENT' => 2,
+            'EMPLOYMENT' => 2,
+            'EDUCATION' => 2,
+            'FINANCIAL_LOAN_TRANSACTION' => 1,
+            'PROOF_OF_ADDRESS' => 1,
+        ],
+
+        'default_resident_weight' => 1,
+        'default_purpose_weight' => 1,
+    ],
+
 ];

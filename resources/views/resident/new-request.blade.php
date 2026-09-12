@@ -17,6 +17,25 @@
             <p>{{ __('common.select_document_purpose') }}</p>
         </div>
 
+        @if($schedule)
+        <div class="mb-6 p-4 {{ $queueStatus['is_open'] ? 'bg-green-600/10 border border-green-600/30 text-green-700 dark:text-green-300' : 'bg-accent-50 dark:bg-accent-900/20 border border-accent-600/30 text-accent-700 dark:text-accent-300' }} rounded-xl text-sm">
+            <p class="font-medium">
+                {{ __('registration.queue_status_label') }}:
+                {{ $queueStatus['is_open'] ? __('registration.queue_open') : __('registration.queue_closed') }}
+            </p>
+            @if($queueStatus['cut_off_enabled'] && $queueStatus['cut_off_time'])
+                <p class="mt-1">{{ __('registration.cut_off_time_label', ['time' => \Carbon\Carbon::parse($queueStatus['cut_off_time'])->format('h:i A')]) }}</p>
+            @endif
+            <p class="mt-1">
+                @if($queueStatus['is_open'])
+                    {{ __('registration.queue_open_message') }}
+                @else
+                    {{ __('registration.queue_closed_message') }}
+                @endif
+            </p>
+        </div>
+        @endif
+
         <div class="mb-6 p-4 {{ $limitReached ? 'bg-red-600/10 border border-danger/30 text-red-600 dark:text-red-400' : 'bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400' }} rounded-xl text-sm">
             <p>
                 {{ __('common.active_requests_count', ['current' => $activeCount, 'max' => $maxActiveRequests]) }}

@@ -15,6 +15,7 @@ use App\Services\AgeService;
 use App\Services\ControlNumberService;
 use App\Services\CredentialService;
 use App\Services\FileService;
+use App\Services\QueueScheduleService;
 use App\Services\WFQService;
 use Illuminate\Support\Str;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -50,11 +51,28 @@ class RegisterController extends Controller
 
     public function showRegistrationForm()
     {
+        $documentTypes = DocumentType::where('is_active', true)->get();
+
+        $documentPurposes = [];
+        foreach ($documentTypes as $documentType) {
+            $documentPurposes[$documentType->id] = $documentType->purposes()
+                ->orderBy('request_purposes.priority_weight', 'desc')
+                ->orderBy('request_purposes.name', 'asc')
+                ->get(['request_purposes.id', 'request_purposes.code', 'request_purposes.name'])
+                ->map(fn ($purpose) => [
+                    'id' => $purpose->id,
+                    'code' => $purpose->code,
+                    'name' => $purpose->name,
+                    'key' => 'purpose_'.mb_strtolower($purpose->code),
+                ])
+                ->values()
+                ->all();
+        }
+
         return view('auth.register', [
-            'documentTypes' => DocumentType::where('is_active', true)->get(),
+            'documentTypes' => $documentTypes,
             'purposes' => RequestPurpose::where('is_active', true)->get(),
-            'certResidencyId' => DocumentType::where('code', 'CERT_RESIDENCY')->value('id'),
-            'documentTypeCodeMap' => json_encode(DocumentType::pluck('id', 'code')),
+            'documentPurposes' => $documentPurposes,
             'translations' => [
                 'en' => __('registration', [], 'en'),
                 'fil' => __('registration', [], 'fil'),
@@ -72,6 +90,18 @@ class RegisterController extends Controller
             }
             throw $e;
         }
+
+        $certificateTypes = [
+            'birth_certificate',
+            'baptismal_certificate',
+            'hoa_certificate',
+        ];
+
+        $isCertificate = in_array(
+            $validated['id_type'],
+            $certificateTypes,
+            true
+        );
 
         $submissionId = $validated['submission_id'] ?? null;
 
@@ -102,13 +132,6 @@ class RegisterController extends Controller
             throw ValidationException::withMessages(['person_status' => 'Pregnant status is only applicable for female residents.']);
         }
 
-        if (! empty($validated['is_pregnant']) && $validated['gender'] !== 'female') {
-            if ($request->expectsJson()) {
-                return response()->json(['errors' => ['is_pregnant' => ['Pregnant status is only applicable for female residents.']]], 422);
-            }
-            throw ValidationException::withMessages(['is_pregnant' => 'Pregnant status is only applicable for female residents.']);
-        }
-
         $statusVerificationPath = null;
         if ($request->hasFile('status_verification_photo')) {
             $statusVerificationPath = $this->fileService->uploadStatusVerification($request->file('status_verification_photo'));
@@ -123,8 +146,6 @@ class RegisterController extends Controller
         } else {
             if ($this->ageService->isSeniorCitizen($age)) {
                 $category = 'senior';
-            } elseif (! empty($validated['is_pregnant']) && $validated['gender'] === 'female') {
-                $category = 'pregnant';
             } else {
                 $category = 'regular';
             }
@@ -168,10 +189,34 @@ class RegisterController extends Controller
 
         $idFilePath = null;
         $idBackFilePath = null;
+        $proofDocumentPath = null;
         $id1x1Path = null;
-        $idFilePath = $this->fileService->uploadIdFile($request->file('id_scan_front'));
-        $idBackFilePath = $this->fileService->uploadIdBack($request->file('id_scan_back'));
-        $id1x1Path = $this->fileService->uploadIdFile($request->file('id_1x1'));
+
+        if ($isCertificate) {
+            if ($request->hasFile('proof_document')) {
+                $proofDocumentPath = $this->fileService->uploadIdFile(
+                    $request->file('proof_document')
+                );
+            }
+        } else {
+            if ($request->hasFile('id_scan_front')) {
+                $idFilePath = $this->fileService->uploadIdFile(
+                    $request->file('id_scan_front')
+                );
+            }
+
+            if ($request->hasFile('id_scan_back')) {
+                $idBackFilePath = $this->fileService->uploadIdBack(
+                    $request->file('id_scan_back')
+                );
+            }
+        }
+
+        if ($request->hasFile('id_1x1')) {
+            $id1x1Path = $this->fileService->uploadIdFile(
+                $request->file('id_1x1')
+            );
+        }
 
         DB::beginTransaction();
         try {
@@ -222,21 +267,35 @@ class RegisterController extends Controller
                 'zip_code' => '4102',
                 'category' => $category,
                 'category_remarks' => $category === 'pwd' ? 'Pending disability verification' : null,
-                'is_pregnant' => ! empty($validated['is_pregnant']) ? 1 : 0,
+                'is_pregnant' => $personStatus === 'pregnant' ? 1 : 0,
             ]);
 
-            $resident->idVerifications()->create([
-                'id_type' => $validated['id_type'],
-                'file_path' => $idFilePath,
-                'file_type' => $request->file('id_scan_front')->getClientOriginalExtension(),
-                'file_size' => $request->file('id_scan_front')->getSize(),
-                'back_file_path' => $idBackFilePath,
-                'back_file_type' => $request->file('id_scan_back')->getClientOriginalExtension(),
-                'back_file_size' => $request->file('id_scan_back')->getSize(),
-                'id_1x1_path' => $id1x1Path,
-                'id_1x1_type' => $request->file('id_1x1')->getClientOriginalExtension(),
-                'id_1x1_size' => $request->file('id_1x1')->getSize(),
-            ]);
+                $mainFile = $isCertificate
+                    ? $request->file('proof_document')
+                    : $request->file('id_scan_front');
+
+                $backFile = $isCertificate
+                    ? null
+                    : $request->file('id_scan_back');
+
+                $resident->idVerifications()->create([
+                    'id_type' => $validated['id_type'],
+
+                    'file_path' => $isCertificate
+                        ? $proofDocumentPath
+                        : $idFilePath,
+
+                    'file_type' => $mainFile?->getClientOriginalExtension(),
+                    'file_size' => $mainFile?->getSize(),
+
+                    'back_file_path' => $idBackFilePath,
+                    'back_file_type' => $backFile?->getClientOriginalExtension(),
+                    'back_file_size' => $backFile?->getSize(),
+
+                    'id_1x1_path' => $id1x1Path,
+                    'id_1x1_type' => $request->file('id_1x1')?->getClientOriginalExtension(),
+                    'id_1x1_size' => $request->file('id_1x1')?->getSize(),
+                ]);
 
             $documentRequest = $this->createDocumentRequest($resident, $validated);
 
@@ -327,15 +386,19 @@ if ($request->expectsJson()) {
             if ($idFilePath) {
                 $this->fileService->deleteFile($idFilePath);
             }
+
             if ($idBackFilePath) {
                 $this->fileService->deleteFile($idBackFilePath);
             }
+
+            if ($proofDocumentPath) {
+                $this->fileService->deleteFile($proofDocumentPath);
+            }
+
             if ($id1x1Path) {
                 $this->fileService->deleteFile($id1x1Path);
             }
-            if ($statusVerificationPath) {
-                $this->fileService->deleteFile($statusVerificationPath);
-            }
+            
             Log::error('Registration failed', [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
@@ -353,6 +416,7 @@ if ($request->expectsJson()) {
     protected function createDocumentRequest(Resident $resident, array $validated)
     {
         $queueNumber = '';
+        $scheduleService = app(QueueScheduleService::class);
 
         for ($attempt = 1; $attempt <= 4; $attempt++) {
             $controlNumber = $this->controlNumberService->generateControlNumber();
@@ -361,16 +425,21 @@ if ($request->expectsJson()) {
                 if (! $queueNumber) {
                     $queueNumber = $this->wFQService->generateQueueNumber();
                 }
-                $qrCode = $this->controlNumberService->generateQrCodePath($controlNumber);
+                $verificationToken = Str::random(32);
+                $qrCode = $this->controlNumberService->generateQrCodePath($verificationToken);
+                $assignment = $scheduleService->assignServiceDate();
+
                 return $resident->documentRequests()->create([
                     'control_number' => $controlNumber,
                     'queue_number' => $queueNumber,
                     'qr_code' => $qrCode,
+                    'verification_token' => $verificationToken,
+                    'service_date' => $assignment['service_date'],
+                    'scheduled_after_cutoff' => $assignment['scheduled_after_cutoff'],
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,
                     'status' => 'pending',
-                    'processing_fee' => 0.00,
                     'expires_at' => now()->addDays(30),
                 ]);
             } catch (UniqueConstraintViolationException $e) {

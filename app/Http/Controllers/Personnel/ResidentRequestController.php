@@ -7,11 +7,14 @@ use App\Models\DocumentType;
 use App\Models\PersonnelRegistration;
 use App\Models\RequestPurpose;
 use App\Models\Resident;
+use App\Services\ControlNumberService;
+use App\Services\QueueScheduleService;
 use App\Services\WFQService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ResidentRequestController extends Controller
 {
@@ -83,10 +86,20 @@ class ResidentRequestController extends Controller
 
     protected function createDocumentRequest($resident, array $validated)
     {
+        $scheduleService = app(QueueScheduleService::class);
+        $controlNumberService = app(ControlNumberService::class);
+
         for ($attempt = 1; $attempt <= 3; $attempt++) {
             try {
+                $verificationToken = Str::random(32);
+                $assignment = $scheduleService->assignServiceDate();
+
                 return $resident->documentRequests()->create([
                     'queue_number' => $this->wFQService->generateQueueNumber(),
+                    'qr_code' => $controlNumberService->generateQrCodePath($verificationToken),
+                    'verification_token' => $verificationToken,
+                    'service_date' => $assignment['service_date'],
+                    'scheduled_after_cutoff' => $assignment['scheduled_after_cutoff'],
                     'document_type_id' => $validated['document_type_id'],
                     'purpose_id' => $validated['purpose_id'],
                     'purpose_other' => $validated['purpose_other'] ?? null,

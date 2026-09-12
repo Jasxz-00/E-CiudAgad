@@ -29,7 +29,7 @@
                         ? (auth()->user()->isAdmin() ? route('admin.dashboard')
                             : (auth()->user()->isPersonnel() ? route('personnel.dashboard')
                             : route('resident.dashboard')))
-                        : url('/');
+                        : route('home');
                 @endphp
                 <a href="{{ $homeRoute }}" wire:navigate class="flex items-center gap-3 min-w-0" aria-label="E-CiudAgad Home">
                     <div class="w-10 h-10 flex items-center justify-center shrink-0" style="background-color:#1E40AF;border-radius:0.75rem;">
@@ -50,6 +50,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </button>
+
+                    @auth
+                        @if(auth()->user()->isResident())
+                        <div x-data="{ langOpen: false }" class="relative">
+                            <button type="button" @@click="langOpen = !langOpen" class="btn-ghost p-2 text-sm" aria-label="Toggle language" aria-haspopup="true">
+                                <span x-text="lang === 'fil' ? 'FIL' : 'ENG'"></span>
+                            </button>
+                            <div x-show="langOpen" x-cloak @@click.away="langOpen = false" x-transition class="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 py-1">
+                                <button type="button" @@click="$dispatch('set-lang', 'fil'); langOpen = false" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" :class="lang === 'fil' ? 'text-primary-700 dark:text-primary-400 font-semibold' : ''">{{ __('common.language_fil') }}</button>
+                                <button type="button" @@click="$dispatch('set-lang', 'en'); langOpen = false" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" :class="lang === 'en' ? 'text-primary-700 dark:text-primary-400 font-semibold' : ''">{{ __('common.language_en') }}</button>
+                            </div>
+                        </div>
+                        @endif
+                    @endauth
 
                     @auth
                         @include('partials.notification-bell')
@@ -124,10 +138,6 @@
                                     <a href="{{ route('admin.document-types.index') }}" wire:navigate class="sidebar-link w-full flex items-center gap-3 text-sm {{ request()->routeIs('admin.document-types.*') ? 'active' : '' }}">
                                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                                         Master Data
-                                    </a>
-                                    <a href="{{ route('admin.announcements.index') }}" wire:navigate class="sidebar-link w-full flex items-center gap-3 text-sm {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}">
-                                        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                                        Announcements
                                     </a>
                                     <a href="{{ route('admin.reports.index') }}" wire:navigate class="sidebar-link w-full flex items-center gap-3 text-sm {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                                         <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -212,10 +222,6 @@
                             <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                             Master Data
                         </a>
-                        <a href="{{ route('admin.announcements.index') }}" wire:navigate class="sidebar-link {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}">
-                            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                            Announcements
-                        </a>
                         <a href="{{ route('admin.reports.index') }}" wire:navigate class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                             <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             Reports
@@ -249,7 +255,7 @@
                 <div>
                     <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">Quick Links</h3>
                     <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                        <li><a href="{{ url('/') }}" wire:navigate class="hover:text-primary-700 dark:hover:text-primary-400 transition-colors">Home</a></li>
+                        <li><a href="{{ route('home') }}" wire:navigate class="hover:text-primary-700 dark:hover:text-primary-400 transition-colors">Home</a></li>
                         <li><a href="{{ route('register') }}" wire:navigate class="hover:text-primary-700 dark:hover:text-primary-400 transition-colors">Request Document</a></li>
                         <li><a href="{{ route('login') }}" wire:navigate class="hover:text-primary-700 dark:hover:text-primary-400 transition-colors">Track Request</a></li>
                     </ul>

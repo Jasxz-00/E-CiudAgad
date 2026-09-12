@@ -31,13 +31,8 @@
 
                 <input type="search" x-model="query" placeholder="Search by name or contact number..." class="input-field mb-2" autocomplete="off">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                    <select x-model="filterBarangay" class="select-field text-sm">
-                        <option value="">All Barangays</option>
-                        <template x-for="b in barangays" :key="b">
-                            <option :value="b" x-text="b"></option>
-                        </template>
-                    </select>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Service area: Barangay Molino I (system context).</p>
+                <div class="mb-3">
                     <select x-model="filterCategory" class="select-field text-sm">
                         <option value="">All Categories</option>
                         <option value="regular">Regular</option>
@@ -112,18 +107,12 @@
         return {
             residents: residents || [],
             query: '',
-            filterBarangay: '',
             filterCategory: '',
             selectedId: initialId,
-
-            get barangays() {
-                return [...new Set(this.residents.map(r => r.barangay).filter(Boolean))].sort();
-            },
 
             get filteredResidents() {
                 const q = this.query.trim().toLowerCase();
                 return this.residents.filter(r => {
-                    if (this.filterBarangay && r.barangay !== this.filterBarangay) return false;
                     if (this.filterCategory && r.category !== this.filterCategory) return false;
                     if (q) {
                         const haystack = ((r.full_name || '') + ' ' + (r.contact_number || '')).toLowerCase();

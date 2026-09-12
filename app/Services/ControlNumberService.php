@@ -14,14 +14,15 @@ class ControlNumberService
         return 'REQ-'.$date.'-'.str_pad($this->todayCount() + 1, 4, '0', STR_PAD_LEFT);
     }
 
-    public function generateQrCodePath(string $controlNumber): string
+    public function generateQrCodePath(string $verificationToken): string
     {
-        $path = 'qrcodes/'.$controlNumber.'.png';
+        $path = 'qrcodes/'.$verificationToken.'.png';
 
         try {
             $fullPath = storage_path('app/private/'.$path);
             @mkdir(dirname($fullPath), 0755, true);
-            QrCode::format('png')->size(300)->generate($controlNumber, $fullPath);
+            $content = route('verification.show', ['token' => $verificationToken]);
+            QrCode::format('png')->size(300)->generate($content, $fullPath);
 
             return $path;
         } catch (\Throwable) {
